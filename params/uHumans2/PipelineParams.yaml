@@ -2,7 +2,8 @@
 # frontend_type
 # Type of VIO Frontend to use
 # 0: StereoImu
-frontend_type: 0
+# 1: MonoImu
+frontend_type: 1
 
 # Type of vioBackend to use:
 # 0: VioBackend
@@ -13,3 +14,8 @@ backend_type: 1
 # 0: Sequential
 # 1: Parallel
 parallel_run: 1
+
+#Display type
+# 0: OpenCV
+# 1: Pangolin
+display_type: 0 
