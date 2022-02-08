@@ -74,6 +74,11 @@ class DataProviderInterface {
   inline void registerRightFrameCallback(const FrameInputCallback& callback) {
     right_frame_callback_ = callback;
   }
+
+  inline void registerSegFrameCallback(const FrameInputCallback& callback) {
+    seg_frame_callback_ = callback;
+  }
+
   inline void registerDepthFrameCallback(
       const DepthFrameInputCallback& callback) {
     depth_frame_callback_ = callback;
@@ -86,6 +91,7 @@ class DataProviderInterface {
   ImuMultiInputCallback imu_multi_callback_;
   FrameInputCallback left_frame_callback_;
   FrameInputCallback right_frame_callback_;
+  FrameInputCallback seg_frame_callback_;
   DepthFrameInputCallback depth_frame_callback_;
 
   // Shutdown switch to stop data provider.

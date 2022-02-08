@@ -240,6 +240,12 @@ std::pair<TrackingStatus, gtsam::Pose3> Tracker::geometricOutlierRejectionMono(
   removeOutliersMono(
       mono_ransac_.inliers_, ref_frame, cur_frame, &matches_ref_cur);
 
+    // TODO(Nadia) semantic outlier removal
+
+    // 1. detect featurepoints in human contour --> semantic_inliers
+    // 2. total_inliers = mono_ransac_.inliers_ OR semantic_inliers
+    // 3. removeOutliersMono(total_inliers, ref_frame, cur_frame, &matches_ref_cur);
+
   // Check quality of tracking.
   TrackingStatus status = TrackingStatus::VALID;
   if (mono_ransac_.inliers_.size() < tracker_params_.minNrMonoInliers_) {
@@ -326,6 +332,12 @@ Tracker::geometricOutlierRejectionMonoGivenRotation(
           << matches_ref_cur.size() - mono_ransac_given_rot_.inliers_.size()
           << "\n Total = " << matches_ref_cur.size();
   debug_info_.nrMonoPutatives_ = matches_ref_cur.size();
+
+  // TODO(Nadia) semantic outlier removal
+
+  // 1. detect featurepoints in human contour --> semantic_inliers
+  // 2. total_inliers = mono_ransac_.inliers_ OR semantic_inliers
+  // 3. removeOutliersMono(total_inliers, ref_frame, cur_frame, &matches_ref_cur);
 
   // Remove outliers.
   debug_info_.nrMonoPutatives_ = matches_ref_cur.size();  // before cleaning.
@@ -686,6 +698,12 @@ Tracker::geometricOutlierRejectionStereo(StereoFrame& ref_stereoFrame,
            << "\n #outliers = "
            << stereo_ransac_.inliers_.size() - matches_ref_cur.size();
   debug_info_.nrStereoPutatives_ = matches_ref_cur.size();
+
+  // TODO(Nadia) semantic outlier removal
+
+  // 1. detect featurepoints in human contour --> semantic_inliers
+  // 2. total_inliers = mono_ransac_.inliers_ OR semantic_inliers
+  // 3. removeOutliersMono(total_inliers, ref_frame, cur_frame, &matches_ref_cur);
 
   // Remove outliers.
   removeOutliersStereo(stereo_ransac_.inliers_,

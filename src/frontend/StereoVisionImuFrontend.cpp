@@ -94,6 +94,8 @@ StereoFrontendOutput::UniquePtr StereoVisionImuFrontend::nominalSpinStereo(
 
   // Get stereo info
   const StereoFrame& stereoFrame_k = input->getStereoFrame();
+  const Frame& segFrame_k = input->getSegFrame();
+
   const auto& k = stereoFrame_k.id_;
   VLOG(1) << "------------------- Processing frame k = " << k
           << "--------------------";
@@ -147,6 +149,12 @@ StereoFrontendOutput::UniquePtr StereoVisionImuFrontend::nominalSpinStereo(
   cv::Mat feature_tracks;
   StatusStereoMeasurementsPtr status_stereo_measurements = processStereoFrame(
       stereoFrame_k, camLrectLkf_R_camLrectK_imu, &feature_tracks);
+
+
+  //TODO(Nadia)
+  // StatusStereoMeasurementsPtr status_stereo_measurements = processStereoSegFrame(
+  //     stereoFrame_k, segFrame_k, camLrectLkf_R_camLrectK_imu, &feature_tracks);
+
 
   CHECK(!stereoFrame_k_);  // processStereoFrame is setting this to nullptr!!!
   VLOG(10) << "Finished processStereoFrame.";

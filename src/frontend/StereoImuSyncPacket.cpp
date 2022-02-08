@@ -21,6 +21,7 @@
 namespace VIO {
 
 StereoImuSyncPacket::StereoImuSyncPacket(const StereoFrame& stereo_frame,
+                                         Frame::UniquePtr seg_frame_p,
                                          const ImuStampS& imu_stamps,
                                          const ImuAccGyrS& imu_accgyrs,
                                          const ReinitPacket& reinit_packet)
@@ -28,7 +29,8 @@ StereoImuSyncPacket::StereoImuSyncPacket(const StereoFrame& stereo_frame,
                               imu_stamps,
                               imu_accgyrs),
       stereo_frame_(stereo_frame),
-      reinit_packet_(reinit_packet) {
+      reinit_packet_(reinit_packet),
+      seg_frame_p_(std::move(seg_frame_p)){
   // The timestamp of the last IMU measurement must correspond to the timestamp
   // of the stereo frame. In case there is no IMU measurement with exactly
   // the same timestamp as the stereo frame, the user should interpolate
@@ -36,6 +38,7 @@ StereoImuSyncPacket::StereoImuSyncPacket(const StereoFrame& stereo_frame,
   CHECK_GT(imu_stamps_.cols(), 0);
   CHECK_EQ(stereo_frame_.timestamp_, imu_stamps_(imu_stamps_.cols() - 1));
   // TODO: Add check on ReinitPacket
+  // TODO(Nadia) - should stereo and segmentation image be time_synced??
 }
 
 void StereoImuSyncPacket::print() const {
