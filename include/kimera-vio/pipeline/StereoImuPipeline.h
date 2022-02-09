@@ -60,6 +60,15 @@ class StereoImuPipeline : public Pipeline {
     dynamic_cast<StereoDataProviderModule*>(data_provider_module_.get())
         ->fillRightFrameQueue(std::move(right_frame));
   }
+
+  inline void fillSegFrameQueue(Frame::UniquePtr seg_frame) {
+    // Copy of fillRightFrameQueue
+    CHECK(data_provider_module_);
+    CHECK(seg_frame);
+    dynamic_cast<StereoDataProviderModule*>(data_provider_module_.get())
+        ->fillSegFrameQueue(std::move(seg_frame));
+  }
+
   inline void fillRightFrameQueueBlockingIfFull(Frame::UniquePtr right_frame) {
     CHECK(data_provider_module_);
     CHECK(right_frame);

@@ -117,6 +117,13 @@ int main(int argc, char* argv[]) {
         std::bind(&VIO::StereoImuPipeline::fillRightFrameQueue,
                   stereo_pipeline,
                   std::placeholders::_1));
+    
+    dataset_parser->registerSegFrameCallback(
+        std::bind(&VIO::StereoImuPipeline::fillSegFrameQueue,
+                  stereo_pipeline,
+                  std::placeholders::_1));
+
+    // seg_frame_callback_(VIO::make_unique<Frame>(frame_count_, timestamp_seg, seg_cam_info, readRosImage(seg_msg)));
   }
 
   // Spin dataset.
