@@ -93,7 +93,7 @@ class StereoImuSyncPacket : public FrontendInputPacketBase {
                       Frame::UniquePtr seg_frame_p,
                       const ImuStampS& imu_stamps,
                       const ImuAccGyrS& imu_accgyr,
-                      const ReinitPacket& reinit_packet = ReinitPacket()); // NOTE(Nadia) - allows segmentation image
+                      const ReinitPacket& reinit_packet = ReinitPacket()); // NOTE(Nadia) add segmentation image as an extra parameter
   ~StereoImuSyncPacket() = default;
 
   // Careful, returning references to members can lead to dangling refs.

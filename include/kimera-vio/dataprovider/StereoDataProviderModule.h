@@ -58,6 +58,11 @@ class StereoDataProviderModule : public MonoDataProviderModule {
     CHECK(right_frame);
     right_frame_queue_.push(std::move(right_frame));
   }
+  inline void fillSegFrameQueue(Frame::UniquePtr seg_frame) {
+    CHECK(seg_frame);
+    seg_frame_queue_.push(std::move(seg_frame));
+  }
+
   inline void fillRightFrameQueueBlockingIfFull(Frame::UniquePtr right_frame) {
     CHECK(right_frame);
     right_frame_queue_.pushBlockingIfFull(std::move(right_frame), 5u);
@@ -66,6 +71,8 @@ class StereoDataProviderModule : public MonoDataProviderModule {
  protected:
   //! The data synchronization function
   InputUniquePtr getInputPacket() override;
+
+  Frame::UniquePtr getSegFramePayload();
 
   //! Called when general shutdown of PipelineModule is triggered.
   void shutdownQueues() override;
@@ -78,6 +85,7 @@ class StereoDataProviderModule : public MonoDataProviderModule {
  private:
   //! Input data
   ThreadsafeQueue<Frame::UniquePtr> right_frame_queue_;
+  ThreadsafeQueue<Frame::UniquePtr> seg_frame_queue_;
   // TODO(Toni): remove these below
   StereoMatchingParams stereo_matching_params_;
 };

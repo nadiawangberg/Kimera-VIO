@@ -28,6 +28,7 @@ StereoDataProviderModule::StereoDataProviderModule(
     const StereoMatchingParams& stereo_matching_params)
     : MonoDataProviderModule(output_queue, name_id, parallel_run),
       right_frame_queue_("data_provider_right_frame_queue"),
+      seg_frame_queue_("data_provider_seg_frame_queue"),
       stereo_matching_params_(stereo_matching_params) {}
 
 StereoDataProviderModule::InputUniquePtr
@@ -55,17 +56,35 @@ StereoDataProviderModule::getInputPacket() {
   }
   CHECK(right_frame_payload);
 
-  if (!shutdown_) {
-    CHECK(vio_pipeline_callback_);
-    vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
-        StereoFrame(left_frame_id,
-                    timestamp,
-                    *mono_imu_sync_packet->frame_,  // this copies...
-                    *right_frame_payload),          // this copies...
-        // be given in PipelineParams.
-        mono_imu_sync_packet->imu_stamps_,
-        mono_imu_sync_packet->imu_accgyrs_));
+      //! Retrieve seg frame data.
+    Frame::UniquePtr seg_frame_payload = nullptr; // getSegFramePayload();
+
+    if (!shutdown_) {
+      CHECK(vio_pipeline_callback_);
+
+      if (!seg_frame_payload) {
+        vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
+            StereoFrame(left_frame_id,
+                        timestamp,
+                        *mono_imu_sync_packet->frame_,  // this copies...
+                        *right_frame_payload),          // this copies...
+            // be given in PipelineParams.
+            mono_imu_sync_packet->imu_stamps_,
+            mono_imu_sync_packet->imu_accgyrs_));
+      }
+      else {
+        vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
+            StereoFrame(left_frame_id,
+                        timestamp,
+                        *mono_imu_sync_packet->frame_,  // this copies...
+                        *right_frame_payload),          // this copies...
+            // be given in PipelineParams.
+            std::move(seg_frame_payload), // NOTE(Nadia) - Copied from MonoDataProviderModule.cpp
+            mono_imu_sync_packet->imu_stamps_,
+            mono_imu_sync_packet->imu_accgyrs_));
+      }
   }
+
 
   // Push the synced messages to the Frontend's input queue
   // TODO(Toni): should be a return like that, so that we pass the info to
@@ -83,6 +102,27 @@ StereoDataProviderModule::getInputPacket() {
   //    imu_meas.timestamps_,
   //    imu_meas.acc_gyr_);
   return nullptr;
+}
+
+Frame::UniquePtr StereoDataProviderModule::getSegFramePayload() {
+  bool queue_state = false;
+  Frame::UniquePtr seg_frame_payload = nullptr;
+  if (MISO::parallel_run_) {
+    queue_state = seg_frame_queue_.popBlocking(seg_frame_payload);
+  } else {
+    queue_state = seg_frame_queue_.pop(seg_frame_payload);
+  }
+
+  if (!queue_state) {
+    LOG_IF(WARNING, MISO::parallel_run_)
+        << "Module: " << MISO::name_id_ << " - queue is down";
+    VLOG_IF(1, !MISO::parallel_run_)
+        << "Module: " << MISO::name_id_ << " - queue is empty or down";
+    return nullptr;
+  }
+  CHECK(seg_frame_payload);
+
+  return seg_frame_payload;
 }
 
 void StereoDataProviderModule::shutdownQueues() {
