@@ -56,6 +56,12 @@ class StereoFrame {
               const Timestamp& timestamp,
               const Frame& left_frame,
               const Frame& right_frame);
+  
+  StereoFrame(const FrameId& id,
+              const Timestamp& timestamp,
+              const Frame& left_frame,
+              const Frame& right_frame,
+              const Frame& seg_frame);
   ~StereoFrame() = default;
 
  public:
@@ -156,6 +162,7 @@ class StereoFrame {
   //! Original monocular left/right frames: these contain features as well.
   Frame left_frame_;
   Frame right_frame_;
+  Frame seg_frame_ = Frame(-1,-1,CameraParams(), cv::Mat());
 
   //! Left/right keypoints being tracked expressed as rectified/undistorted
   //! points with validity flag.
