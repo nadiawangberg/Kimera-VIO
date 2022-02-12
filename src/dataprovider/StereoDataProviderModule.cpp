@@ -79,9 +79,9 @@ StereoDataProviderModule::getInputPacket() {
             StereoFrame(left_frame_id,
                         timestamp,
                         *mono_imu_sync_packet->frame_,  // this copies...
-                        *right_frame_payload),          // this copies...
+                        *right_frame_payload,          // this copies...
+                        *seg_frame_payload), // NOTE(Nadia) - Copied from MonoDataProviderModule.cpp
             // be given in PipelineParams.
-            std::move(seg_frame_payload), // NOTE(Nadia) - Copied from MonoDataProviderModule.cpp
             mono_imu_sync_packet->imu_stamps_,
             mono_imu_sync_packet->imu_accgyrs_));
       }
