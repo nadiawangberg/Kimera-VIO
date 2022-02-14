@@ -432,8 +432,6 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   findMatchingStereoKeypoints(
       ref_stereoFrame, cur_stereoFrame, &matches_ref_cur);
 
-  LOG(INFO) << "Did seg frame survive??? (from given rotation)"; 
-  LOG(INFO) << "ID: " << ref_stereoFrame.seg_frame_.id_;
 
   VLOG(5) << "geometricOutlierRejectionStereoGivenRot:"
               " starting 1-point RANSAC (voting)";
@@ -453,14 +451,6 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   //============================================================================
   auto timeCreatePointsAndCov_p_tic = utils::Timer::tic();
   size_t nrMatches = matches_ref_cur.size();
-
-
-  cv::imwrite("seg_img_in_tracker.jpg", ref_stereoFrame.seg_frame_.img_);
-
-  if (ref_stereoFrame.seg_frame_.id_ != -1) {
-      //TODO(Nadia) - For debugging only!
-      cv::imwrite("seg_img_in_tracker.jpg", ref_stereoFrame.seg_frame_.img_);
-  }
 
   // TODO(Nadia) semantic outlier removal
 
@@ -826,10 +816,66 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
   // Store only inliers from now on.
   KeypointMatches outlier_free_matches_ref_cur;
   outlier_free_matches_ref_cur.reserve(inliers.size());
+
+  cv::Mat feature_image;
+  ref_stereoFrame->right_frame_.img_.copyTo(feature_image);
+
+  KeypointsCV kp_right = ref_stereoFrame->right_frame_.keypoints_;
+
   for (const size_t& in : inliers) {
-    outlier_free_matches_ref_cur.push_back((*matches_ref_cur)[in]);
+
+    cv::Point geom_inlier = cv::Point(kp_right[in].x, kp_right[in].y);
+
+    if (isSemanticInlier(geom_inlier, ref_stereoFrame->seg_frame_)) {
+      cv::drawMarker(feature_image, geom_inlier , cv::Scalar(0,0,0));
+      // LOG(INFO) << "Geometric inlier is also a semantic inlier"; 
+      outlier_free_matches_ref_cur.push_back((*matches_ref_cur)[in]);
+    }
+    else {
+        cv::drawMarker(feature_image, geom_inlier , cv::Scalar(255,255,255)); // int 	markerType = MARKER_CROSS, int 	markerSize = 20,int 	thickness = 1,int 	line_type = 8 
+    }
   }
+
+  cv::imwrite("feature_image.jpg", feature_image);
+
   *matches_ref_cur = outlier_free_matches_ref_cur;
+}
+
+bool Tracker::isSemanticInlier(const cv::Point& geom_inlier,
+                               const Frame& seg_frame) {
+  
+  if (seg_frame.id_ == -1) { return true; } //seg_frame does not exsist so semantic inlier is not run TODO(Nadia) should this be done differently??
+
+
+  LOG(INFO) << "color: " << seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x); 
+
+
+  //cv::Mat is type 0 = CV_8UC1
+  //uchar for CV_8U
+  if (seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x) == 162) {
+    return true;
+  }
+
+  //TODO(Nadia) - For debugging only!
+  cv::imwrite("seg_img_in_tracker.jpg", seg_frame.img_);
+
+  cv::Scalar people_rgb = cv::Scalar(162,162,162); // Both are included??
+
+  cv::Mat dynamic_img; 
+  cv::inRange(seg_frame.img_, people_rgb, people_rgb, dynamic_img); // if the frame has any orange pixel, this will be painted in the mask as white
+
+  cv::imwrite("masked_img.jpg", dynamic_img);
+
+  
+
+  //Draw the geometric inliers on seg_frame
+
+  //Remove the semantic outliers
+
+  //Draw the geometric x semantic inliers on
+  
+  
+  return false;
 }
 
 void Tracker::findMatchingKeypoints(const Frame& ref_frame,

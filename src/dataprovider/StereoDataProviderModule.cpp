@@ -74,7 +74,6 @@ StereoDataProviderModule::getInputPacket() {
       }
       else {
         LOG(INFO) << "Not a nullptr!!";
-        cv::imwrite("seg_img_in_data_provider.jpg", seg_frame_payload->img_);
         vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
             StereoFrame(left_frame_id,
                         timestamp,
