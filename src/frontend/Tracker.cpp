@@ -240,7 +240,6 @@ std::pair<TrackingStatus, gtsam::Pose3> Tracker::geometricOutlierRejectionMono(
   removeOutliersMono(
       mono_ransac_.inliers_, ref_frame, cur_frame, &matches_ref_cur);
 
-
   // Check quality of tracking.
   TrackingStatus status = TrackingStatus::VALID;
   if (mono_ransac_.inliers_.size() < tracker_params_.minNrMonoInliers_) {
@@ -327,7 +326,6 @@ Tracker::geometricOutlierRejectionMonoGivenRotation(
           << matches_ref_cur.size() - mono_ransac_given_rot_.inliers_.size()
           << "\n Total = " << matches_ref_cur.size();
   debug_info_.nrMonoPutatives_ = matches_ref_cur.size();
-
 
   // Remove outliers.
   debug_info_.nrMonoPutatives_ = matches_ref_cur.size();  // before cleaning.
@@ -421,7 +419,6 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   KeypointMatches matches_ref_cur;
   findMatchingStereoKeypoints(
       ref_stereoFrame, cur_stereoFrame, &matches_ref_cur);
-
 
   VLOG(5) << "geometricOutlierRejectionStereoGivenRot:"
               " starting 1-point RANSAC (voting)";
@@ -794,25 +791,39 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
   KeypointMatches outlier_free_matches_ref_cur;
   outlier_free_matches_ref_cur.reserve(inliers.size());
 
-  cv::Mat feature_image;
-  ref_stereoFrame->right_frame_.img_.copyTo(feature_image);
+  cv::Mat feature_image_r;
+  cv::Mat feature_image_l;
+  cv::Mat feature_image_seg;
+  ref_stereoFrame->right_frame_.img_.copyTo(feature_image_r);
+  ref_stereoFrame->left_frame_.img_.copyTo(feature_image_l);
+  ref_stereoFrame->seg_frame_.img_.copyTo(feature_image_seg);
 
   KeypointsCV kp_right = ref_stereoFrame->right_frame_.keypoints_;
+  KeypointsCV kp_left = ref_stereoFrame->left_frame_.keypoints_;
 
   for (const size_t& in : inliers) {
 
-    cv::Point geom_inlier = cv::Point(kp_right[in].x, kp_right[in].y);
+    cv::Point geom_inlier_r = cv::Point(kp_right[in].x, kp_right[in].y);
+    cv::Point geom_inlier_l = cv::Point(kp_left[in].x, kp_left[in].y);
 
-    if (isSemanticInlier(geom_inlier, ref_stereoFrame->seg_frame_)) {
-      cv::drawMarker(feature_image, geom_inlier , cv::Scalar(0,0,0));
+    if (isSemanticInlier(geom_inlier_r, ref_stereoFrame->seg_frame_)) {
+      cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(0,0,0));
+      cv::drawMarker(feature_image_l, geom_inlier_l , cv::Scalar(0,0,0));
+      cv::drawMarker(feature_image_seg, geom_inlier_r, cv::Scalar(0,0,0));
+
+
       outlier_free_matches_ref_cur.push_back((*matches_ref_cur)[in]);
     }
     else {
-        cv::drawMarker(feature_image, geom_inlier , cv::Scalar(255,255,255)); // int 	markerType = MARKER_CROSS, int 	markerSize = 20,int 	thickness = 1,int 	line_type = 8 
+        cv::drawMarker(feature_image_l, geom_inlier_l , cv::Scalar(255,255,255));
+        cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(255,255,255)); // int 	markerType = MARKER_CROSS, int 	markerSize = 20,int 	thickness = 1,int 	line_type = 8 
+        cv::drawMarker(feature_image_seg, geom_inlier_r, cv::Scalar(255,255,255));
     }
   }
 
-  cv::imwrite("feature_image.jpg", feature_image);
+  cv::imwrite("feature_image_r.jpg", feature_image_r);
+  cv::imwrite("feature_image_l.jpg", feature_image_l);
+  cv::imwrite("feature_image_seg.jpg", feature_image_seg);
 
   *matches_ref_cur = outlier_free_matches_ref_cur;
 }
