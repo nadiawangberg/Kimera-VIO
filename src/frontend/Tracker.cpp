@@ -240,11 +240,6 @@ std::pair<TrackingStatus, gtsam::Pose3> Tracker::geometricOutlierRejectionMono(
   removeOutliersMono(
       mono_ransac_.inliers_, ref_frame, cur_frame, &matches_ref_cur);
 
-    // TODO(Nadia) semantic outlier removal
-
-    // 1. detect featurepoints in human contour --> semantic_inliers
-    // 2. total_inliers = mono_ransac_.inliers_ OR semantic_inliers
-    // 3. removeOutliersMono(total_inliers, ref_frame, cur_frame, &matches_ref_cur);
 
   // Check quality of tracking.
   TrackingStatus status = TrackingStatus::VALID;
@@ -333,11 +328,6 @@ Tracker::geometricOutlierRejectionMonoGivenRotation(
           << "\n Total = " << matches_ref_cur.size();
   debug_info_.nrMonoPutatives_ = matches_ref_cur.size();
 
-  // TODO(Nadia) semantic outlier removal
-
-  // 1. detect featurepoints in human contour --> semantic_inliers
-  // 2. total_inliers = mono_ransac_.inliers_ OR semantic_inliers
-  // 3. removeOutliersMono(total_inliers, ref_frame, cur_frame, &matches_ref_cur);
 
   // Remove outliers.
   debug_info_.nrMonoPutatives_ = matches_ref_cur.size();  // before cleaning.
@@ -442,7 +432,6 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   // Create stereo camera in the ref frame of the left camera.
   gtsam::StereoCamera stereoCam(gtsam::Pose3::identity(),
                                 stereo_camera->getStereoCalib());
-
   double timeMatchingAndAllocation_p =
       utils::Timer::toc(start_time_tic).count();
 
@@ -451,12 +440,6 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   //============================================================================
   auto timeCreatePointsAndCov_p_tic = utils::Timer::tic();
   size_t nrMatches = matches_ref_cur.size();
-
-  // TODO(Nadia) semantic outlier removal
-
-  // 1. detect featurepoints in human contour --> semantic_inliers
-  // 2. total_inliers = mono_ransac_.inliers_ OR semantic_inliers
-  // 3. removeOutliersMono(total_inliers, ref_frame, cur_frame, &matches_ref_cur);
 
   // NOTE: 3d points are constructed by versors, which are already in the
   // rectified left camera frame. No further rectification needed.
@@ -706,12 +689,6 @@ Tracker::geometricOutlierRejectionStereo(StereoFrame& ref_stereoFrame,
            << stereo_ransac_.inliers_.size() - matches_ref_cur.size();
   debug_info_.nrStereoPutatives_ = matches_ref_cur.size();
 
-  // TODO(Nadia) semantic outlier removal - NB this func is not called
-
-  // 1. detect featurepoints in human contour --> semantic_inliers
-  // 2. total_inliers = mono_ransac_.inliers_ OR semantic_inliers
-  // 3. removeOutliersMono(total_inliers, ref_frame, cur_frame, &matches_ref_cur);
-
   // Remove outliers.
   removeOutliersStereo(stereo_ransac_.inliers_,
                        &ref_stereoFrame,
@@ -828,7 +805,6 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
 
     if (isSemanticInlier(geom_inlier, ref_stereoFrame->seg_frame_)) {
       cv::drawMarker(feature_image, geom_inlier , cv::Scalar(0,0,0));
-      // LOG(INFO) << "Geometric inlier is also a semantic inlier"; 
       outlier_free_matches_ref_cur.push_back((*matches_ref_cur)[in]);
     }
     else {
@@ -846,34 +822,16 @@ bool Tracker::isSemanticInlier(const cv::Point& geom_inlier,
   
   if (seg_frame.id_ == -1) { return true; } //seg_frame does not exsist so semantic inlier is not run TODO(Nadia) should this be done differently??
 
-
-  LOG(INFO) << "color: " << seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x); 
-
-
-  //cv::Mat is type 0 = CV_8UC1
-  //uchar for CV_8U
   if (seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x) == 162) {
     return true;
   }
 
   //TODO(Nadia) - For debugging only!
   cv::imwrite("seg_img_in_tracker.jpg", seg_frame.img_);
-
   cv::Scalar people_rgb = cv::Scalar(162,162,162); // Both are included??
-
   cv::Mat dynamic_img; 
   cv::inRange(seg_frame.img_, people_rgb, people_rgb, dynamic_img); // if the frame has any orange pixel, this will be painted in the mask as white
-
   cv::imwrite("masked_img.jpg", dynamic_img);
-
-  
-
-  //Draw the geometric inliers on seg_frame
-
-  //Remove the semantic outliers
-
-  //Draw the geometric x semantic inliers on
-  
   
   return false;
 }

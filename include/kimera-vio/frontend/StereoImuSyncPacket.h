@@ -21,7 +21,6 @@
 
 #include "kimera-vio/frontend/FrontendInputPacketBase.h"
 #include "kimera-vio/frontend/StereoFrame.h"
-#include "kimera-vio/frontend/Frame.h"
 
 namespace VIO {
 
@@ -83,22 +82,15 @@ class StereoImuSyncPacket : public FrontendInputPacketBase {
   KIMERA_DELETE_COPY_CONSTRUCTORS(StereoImuSyncPacket);
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   StereoImuSyncPacket() = delete;
-
   StereoImuSyncPacket(const StereoFrame& stereo_frame,
                       const ImuStampS& imu_stamps,
                       const ImuAccGyrS& imu_accgyr,
                       const ReinitPacket& reinit_packet = ReinitPacket());
 
-  StereoImuSyncPacket(const StereoFrame& stereo_frame,
-                      Frame::UniquePtr seg_frame_p,
-                      const ImuStampS& imu_stamps,
-                      const ImuAccGyrS& imu_accgyr,
-                      const ReinitPacket& reinit_packet = ReinitPacket()); // NOTE(Nadia) add segmentation image as an extra parameter
   ~StereoImuSyncPacket() = default;
 
   // Careful, returning references to members can lead to dangling refs.
   inline const StereoFrame& getStereoFrame() const { return stereo_frame_; }
-  inline const Frame& getSegFrame() const { return *seg_frame_p_; }
   inline const ImuStampS& getImuStamps() const { return imu_stamps_; }
   inline const ImuAccGyrS& getImuAccGyrs() const { return imu_accgyrs_; }
   inline const ReinitPacket& getReinitPacket() const { return reinit_packet_; }
@@ -111,7 +103,6 @@ class StereoImuSyncPacket : public FrontendInputPacketBase {
  private:
   const StereoFrame stereo_frame_;
   const ReinitPacket reinit_packet_;
-  Frame::UniquePtr seg_frame_p_;
 };
 
 }  // namespace VIO
