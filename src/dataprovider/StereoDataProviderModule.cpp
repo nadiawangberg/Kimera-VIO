@@ -57,7 +57,7 @@ StereoDataProviderModule::getInputPacket() {
   CHECK(right_frame_payload);
 
       //! Retrieve seg frame data.
-    Frame::UniquePtr seg_frame_payload = nullptr; // getSegFramePayload();
+    Frame::UniquePtr seg_frame_payload = getSegFramePayload();
 
     if (!shutdown_) {
       CHECK(vio_pipeline_callback_);
@@ -73,13 +73,15 @@ StereoDataProviderModule::getInputPacket() {
             mono_imu_sync_packet->imu_accgyrs_));
       }
       else {
+        LOG(INFO) << "Not a nullptr!!";
+        cv::imwrite("seg_img_in_data_provider.jpg", seg_frame_payload->img_);
         vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
             StereoFrame(left_frame_id,
                         timestamp,
                         *mono_imu_sync_packet->frame_,  // this copies...
-                        *right_frame_payload),          // this copies...
+                        *right_frame_payload,          // this copies...
+                        *seg_frame_payload), // NOTE(Nadia) - Copied from MonoDataProviderModule.cpp
             // be given in PipelineParams.
-            std::move(seg_frame_payload), // NOTE(Nadia) - Copied from MonoDataProviderModule.cpp
             mono_imu_sync_packet->imu_stamps_,
             mono_imu_sync_packet->imu_accgyrs_));
       }

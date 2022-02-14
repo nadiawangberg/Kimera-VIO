@@ -46,6 +46,31 @@ StereoFrame::StereoFrame(const FrameId& id,
   CHECK_EQ(timestamp_, right_frame_.timestamp_);
 }
 
+StereoFrame::StereoFrame(const FrameId& id,
+                         const Timestamp& timestamp,
+                         const Frame& left_frame,
+                         const Frame& right_frame,
+                         const Frame& seg_frame)
+    : is_keyframe_(false),
+      is_rectified_(false),
+      left_img_rectified_(),
+      right_img_rectified_(),
+      id_(id),
+      timestamp_(timestamp),
+      // TODO(Toni): remove these copies
+      left_frame_(left_frame),
+      right_frame_(right_frame),
+      seg_frame_(seg_frame),
+      left_keypoints_rectified_(),
+      right_keypoints_rectified_(),
+      keypoints_depth_(),
+      keypoints_3d_() {
+  CHECK_EQ(id_, left_frame_.id_);
+  CHECK_EQ(id_, right_frame_.id_);
+  CHECK_EQ(timestamp_, left_frame_.timestamp_);
+  CHECK_EQ(timestamp_, right_frame_.timestamp_);
+}
+
 void StereoFrame::setRectifiedImages(const cv::Mat& left_rectified_img,
                                      const cv::Mat& right_rectified_img) {
   left_img_rectified_ = left_rectified_img;

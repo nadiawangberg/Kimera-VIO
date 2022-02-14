@@ -432,6 +432,9 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   findMatchingStereoKeypoints(
       ref_stereoFrame, cur_stereoFrame, &matches_ref_cur);
 
+  LOG(INFO) << "Did seg frame survive??? (from given rotation)"; 
+  LOG(INFO) << "ID: " << ref_stereoFrame.seg_frame_.id_;
+
   VLOG(5) << "geometricOutlierRejectionStereoGivenRot:"
               " starting 1-point RANSAC (voting)";
 
@@ -450,6 +453,20 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   //============================================================================
   auto timeCreatePointsAndCov_p_tic = utils::Timer::tic();
   size_t nrMatches = matches_ref_cur.size();
+
+
+  cv::imwrite("seg_img_in_tracker.jpg", ref_stereoFrame.seg_frame_.img_);
+
+  if (ref_stereoFrame.seg_frame_.id_ != -1) {
+      //TODO(Nadia) - For debugging only!
+      cv::imwrite("seg_img_in_tracker.jpg", ref_stereoFrame.seg_frame_.img_);
+  }
+
+  // TODO(Nadia) semantic outlier removal
+
+  // 1. detect featurepoints in human contour --> semantic_inliers
+  // 2. total_inliers = mono_ransac_.inliers_ OR semantic_inliers
+  // 3. removeOutliersMono(total_inliers, ref_frame, cur_frame, &matches_ref_cur);
 
   // NOTE: 3d points are constructed by versors, which are already in the
   // rectified left camera frame. No further rectification needed.
@@ -699,7 +716,7 @@ Tracker::geometricOutlierRejectionStereo(StereoFrame& ref_stereoFrame,
            << stereo_ransac_.inliers_.size() - matches_ref_cur.size();
   debug_info_.nrStereoPutatives_ = matches_ref_cur.size();
 
-  // TODO(Nadia) semantic outlier removal
+  // TODO(Nadia) semantic outlier removal - NB this func is not called
 
   // 1. detect featurepoints in human contour --> semantic_inliers
   // 2. total_inliers = mono_ransac_.inliers_ OR semantic_inliers
