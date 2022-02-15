@@ -73,7 +73,7 @@ StereoDataProviderModule::getInputPacket() {
             mono_imu_sync_packet->imu_accgyrs_));
       }
       else {
-        LOG(INFO) << "Not a nullptr!!";
+        LOG(INFO) << "Segmentation frame is available!";
         vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
             StereoFrame(left_frame_id,
                         timestamp,
@@ -108,17 +108,14 @@ StereoDataProviderModule::getInputPacket() {
 Frame::UniquePtr StereoDataProviderModule::getSegFramePayload() {
   bool queue_state = false;
   Frame::UniquePtr seg_frame_payload = nullptr;
-  if (MISO::parallel_run_) {
-    queue_state = seg_frame_queue_.popBlocking(seg_frame_payload);
-  } else {
-    queue_state = seg_frame_queue_.pop(seg_frame_payload);
-  }
+
+  queue_state = seg_frame_queue_.pop(seg_frame_payload);
 
   if (!queue_state) {
     LOG_IF(WARNING, MISO::parallel_run_)
-        << "Module: " << MISO::name_id_ << " - queue is down";
+        << "Module: " << MISO::name_id_ << " - segmentation frame queue is down";
     VLOG_IF(1, !MISO::parallel_run_)
-        << "Module: " << MISO::name_id_ << " - queue is empty or down";
+        << "Module: " << MISO::name_id_ << " - segmentation frame queue is empty or down";
     return nullptr;
   }
   CHECK(seg_frame_payload);
