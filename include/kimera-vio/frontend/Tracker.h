@@ -106,8 +106,12 @@ class Tracker {
                             StereoFrame* cur_stereoFrame,
                             KeypointMatches* matches_ref_cur);
 
-  bool isSemanticInlier(const cv::Point& geom_inlier,
-                                 const Frame& seg_frame);
+
+  bool isSemanticOutlier(const cv::Point& geom_inlier,
+                         const Frame& seg_frame);
+
+  std::vector<int> removeSemanticOutliers(const std::vector<int>& inliers,
+                                          const StereoFrame& stereo_frame);
 
   /* ---------------------------- CONST FUNCTIONS --------------------------- */
   // returns frame with markers

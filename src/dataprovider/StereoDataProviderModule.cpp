@@ -56,36 +56,34 @@ StereoDataProviderModule::getInputPacket() {
   }
   CHECK(right_frame_payload);
 
-      //! Retrieve seg frame data.
-    Frame::UniquePtr seg_frame_payload = getSegFramePayload();
+    //! Retrieve seg frame data.
+  Frame::UniquePtr seg_frame_payload = getSegFramePayload();
 
-    if (!shutdown_) {
-      CHECK(vio_pipeline_callback_);
+  if (!shutdown_) {
+    CHECK(vio_pipeline_callback_);
 
-      if (!seg_frame_payload) {
-        vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
-            StereoFrame(left_frame_id,
-                        timestamp,
-                        *mono_imu_sync_packet->frame_,  // this copies...
-                        *right_frame_payload),          // this copies...
-            // be given in PipelineParams.
-            mono_imu_sync_packet->imu_stamps_,
-            mono_imu_sync_packet->imu_accgyrs_));
-      }
-      else {
-        LOG(INFO) << "Segmentation frame is available!";
-        vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
-            StereoFrame(left_frame_id,
-                        timestamp,
-                        *mono_imu_sync_packet->frame_,  // this copies...
-                        *right_frame_payload,          // this copies...
-                        *seg_frame_payload), // NOTE(Nadia) - Copied from MonoDataProviderModule.cpp
-            // be given in PipelineParams.
-            mono_imu_sync_packet->imu_stamps_,
-            mono_imu_sync_packet->imu_accgyrs_));
-      }
+    if (!seg_frame_payload) {
+      vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
+          StereoFrame(left_frame_id,
+                      timestamp,
+                      *mono_imu_sync_packet->frame_,  // this copies...
+                      *right_frame_payload),          // this copies...
+          // be given in PipelineParams.
+          mono_imu_sync_packet->imu_stamps_,
+          mono_imu_sync_packet->imu_accgyrs_));
+    }
+    else {
+      vio_pipeline_callback_(VIO::make_unique<StereoImuSyncPacket>(
+          StereoFrame(left_frame_id,
+                      timestamp,
+                      *mono_imu_sync_packet->frame_,  // this copies...
+                      *right_frame_payload,           // this copies...
+                      *seg_frame_payload),            // this copies...
+          // be given in PipelineParams.
+          mono_imu_sync_packet->imu_stamps_,
+          mono_imu_sync_packet->imu_accgyrs_));
+    }
   }
-
 
   // Push the synced messages to the Frontend's input queue
   // TODO(Toni): should be a return like that, so that we pass the info to

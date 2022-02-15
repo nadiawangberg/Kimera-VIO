@@ -580,6 +580,8 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   // Inliers are max coherent set.
   std::vector<int> inliers = coherentSet.at(maxCoherentSetId);
 
+  inliers = removeSemanticOutliers(inliers, ref_stereoFrame);
+
   // Sort inliers.
   std::sort(inliers.begin(), inliers.end());
   // UtilsOpenCV::PrintVector<int>(inliers,"inliers");
@@ -792,60 +794,96 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
   KeypointMatches outlier_free_matches_ref_cur;
   outlier_free_matches_ref_cur.reserve(inliers.size());
 
-  cv::Mat feature_image_r;
-  cv::Mat feature_image_l;
-  cv::Mat feature_image_seg;
-  ref_stereoFrame->right_frame_.img_.copyTo(feature_image_r);
-  ref_stereoFrame->left_frame_.img_.copyTo(feature_image_l);
-  ref_stereoFrame->seg_frame_.img_.copyTo(feature_image_seg);
+  // cv::Mat feature_image_r;
+  // cv::Mat feature_image_l;
+  // cv::Mat feature_image_seg;
+  // ref_stereoFrame->right_frame_.img_.copyTo(feature_image_r);
+  // ref_stereoFrame->left_frame_.img_.copyTo(feature_image_l);
+  // ref_stereoFrame->seg_frame_.img_.copyTo(feature_image_seg);
 
-  KeypointsCV kp_right = ref_stereoFrame->right_frame_.keypoints_;
-  KeypointsCV kp_left = ref_stereoFrame->left_frame_.keypoints_;
+  // KeypointsCV kp_right = ref_stereoFrame->right_frame_.keypoints_;
+  // KeypointsCV kp_left = ref_stereoFrame->left_frame_.keypoints_;
 
   for (const size_t& in : inliers) {
 
-    cv::Point geom_inlier_r = cv::Point(kp_right[in].x, kp_right[in].y);
-    cv::Point geom_inlier_l = cv::Point(kp_left[in].x, kp_left[in].y);
+    // cv::Point geom_inlier_r = cv::Point(kp_right[in].x, kp_right[in].y);
+    // cv::Point geom_inlier_l = cv::Point(kp_left[in].x, kp_left[in].y);
 
-    if (isSemanticInlier(geom_inlier_r, ref_stereoFrame->seg_frame_)) {
-      cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(0,0,0));
-      cv::drawMarker(feature_image_l, geom_inlier_l , cv::Scalar(0,0,0));
-      cv::drawMarker(feature_image_seg, geom_inlier_r, cv::Scalar(0,0,0));
+    // if (isSemanticInlier(geom_inlier_r, ref_stereoFrame->seg_frame_)) {
+      // cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(255,255,255));
+      // cv::drawMarker(feature_image_l, geom_inlier_l , cv::Scalar(0,0,0));
+      // cv::drawMarker(feature_image_seg, geom_inlier_r, cv::Scalar(0,0,0));
 
-
-      outlier_free_matches_ref_cur.push_back((*matches_ref_cur)[in]);
-    }
-    else {
-        cv::drawMarker(feature_image_l, geom_inlier_l , cv::Scalar(255,255,255));
-        cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(255,255,255)); // int 	markerType = MARKER_CROSS, int 	markerSize = 20,int 	thickness = 1,int 	line_type = 8 
-        cv::drawMarker(feature_image_seg, geom_inlier_r, cv::Scalar(255,255,255));
-    }
+    outlier_free_matches_ref_cur.push_back((*matches_ref_cur)[in]);
+    // }
+    // else {
+        // cv::drawMarker(feature_image_l, geom_inlier_l , cv::Scalar(255,255,255));
+        // cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(0,0,0));
+        // cv::drawMarker(feature_image_seg, geom_inlier_r, cv::Scalar(255,255,255));
+    // }
   }
 
-  cv::imwrite("feature_image_r.jpg", feature_image_r);
-  cv::imwrite("feature_image_l.jpg", feature_image_l);
-  cv::imwrite("feature_image_seg.jpg", feature_image_seg);
+  // cv::imwrite("feature_image_r.jpg", feature_image_r);
+  // cv::imwrite("feature_image_l.jpg", feature_image_l);
+  // cv::imwrite("feature_image_seg.jpg", feature_image_seg);
 
   *matches_ref_cur = outlier_free_matches_ref_cur;
 }
 
-bool Tracker::isSemanticInlier(const cv::Point& geom_inlier,
+std::vector<int> Tracker::removeSemanticOutliers(const std::vector<int>& inliers,
+                                                 const StereoFrame& stereo_frame) {
+    
+    // LOG(INFO) << "inliers.size(): " << inliers.size();
+
+    //DEBUG
+    cv::Mat feature_image_r;
+    stereo_frame.right_frame_.img_.copyTo(feature_image_r);
+    //DEBUG
+
+    std::vector<int> inliers_semantic;
+    inliers_semantic.reserve(inliers.size());
+
+    KeypointsCV kp_right = stereo_frame.right_frame_.keypoints_;                                   
+    for (const int& in : inliers) {
+      cv::Point geom_inlier_r = cv::Point(kp_right[in].x, kp_right[in].y);
+
+      if (not isSemanticOutlier(geom_inlier_r, stereo_frame.seg_frame_)) {
+        // inliers.erase(inliers.begin()+in); // erases the outlier_pos+1 element (this is regular 0-indexing)
+        cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(255,255,255)); //DEBUG
+        inliers_semantic.push_back(in);
+      }
+      else {
+        cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(0,0,0)); //DEBUG
+      }
+    }
+
+    // LOG(INFO) << "inliers_semantic.size():  " << inliers_semantic.size();                  
+    cv::imwrite("feature_image_r.jpg", feature_image_r); //DEBUG
+
+    return inliers_semantic; 
+    }
+
+bool Tracker::isSemanticOutlier(const cv::Point& geom_inlier,
                                const Frame& seg_frame) {
   
-  if (seg_frame.id_ == -1) { return true; } //seg_frame does not exsist so semantic inlier is not run TODO(Nadia) should this be done differently??
+  int dynamic_color = 162; // Value of people in seg_frame from uHumans2
+  int kp_color = seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x);
 
-  if (seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x) == 162) {
+  if (kp_color == dynamic_color) { //outlier!
     return true;
   }
+  else {
+    return false;
+  }
 
-  //TODO(Nadia) - For debugging only!
-  cv::imwrite("seg_img_in_tracker.jpg", seg_frame.img_);
-  cv::Scalar people_rgb = cv::Scalar(162,162,162); // Both are included??
-  cv::Mat dynamic_img; 
-  cv::inRange(seg_frame.img_, people_rgb, people_rgb, dynamic_img); // if the frame has any orange pixel, this will be painted in the mask as white
-  cv::imwrite("masked_img.jpg", dynamic_img);
+  // //TODO(Nadia) - For debugging only!
+  // // cv::imwrite("seg_img_in_tracker.jpg", seg_frame.img_);
+  // // cv::Scalar people_rgb = cv::Scalar(162,162,162); // Both are included??
+  // // cv::Mat dynamic_img; 
+  // // cv::inRange(seg_frame.img_, people_rgb, people_rgb, dynamic_img); // if the frame has any orange pixel, this will be painted in the mask as white
+  // // cv::imwrite("masked_img.jpg", dynamic_img);
   
-  return false;
+  // LOG(INFO) >> "ID: " >> seg_frame.id_.; // If this is -1 we dont have seg_image avaiable
 }
 
 void Tracker::findMatchingKeypoints(const Frame& ref_frame,
