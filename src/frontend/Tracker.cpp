@@ -429,6 +429,7 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   // Create stereo camera in the ref frame of the left camera.
   gtsam::StereoCamera stereoCam(gtsam::Pose3::identity(),
                                 stereo_camera->getStereoCalib());
+                                
   double timeMatchingAndAllocation_p =
       utils::Timer::toc(start_time_tic).count();
 

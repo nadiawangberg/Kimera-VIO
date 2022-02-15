@@ -86,7 +86,6 @@ class StereoImuSyncPacket : public FrontendInputPacketBase {
                       const ImuStampS& imu_stamps,
                       const ImuAccGyrS& imu_accgyr,
                       const ReinitPacket& reinit_packet = ReinitPacket());
-
   ~StereoImuSyncPacket() = default;
 
   // Careful, returning references to members can lead to dangling refs.

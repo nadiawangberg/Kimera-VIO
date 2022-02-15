@@ -38,7 +38,6 @@ StereoImuSyncPacket::StereoImuSyncPacket(const StereoFrame& stereo_frame,
   // TODO: Add check on ReinitPacket
 }
 
-
 void StereoImuSyncPacket::print() const {
   LOG(INFO) << "Stereo Frame timestamp: " << stereo_frame_.timestamp_
             << '\n'
