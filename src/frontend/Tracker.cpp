@@ -866,6 +866,8 @@ std::vector<int> Tracker::removeSemanticOutliers(const std::vector<int>& inliers
 bool Tracker::isSemanticOutlier(const cv::Point& geom_inlier,
                                const Frame& seg_frame) {
   
+  if (seg_frame.id_ == -1) {return false; }
+
   int dynamic_color = 162; // Value of people in seg_frame from uHumans2
   int kp_color = seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x);
 
