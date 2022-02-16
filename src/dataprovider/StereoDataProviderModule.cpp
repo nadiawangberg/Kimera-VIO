@@ -106,8 +106,12 @@ StereoDataProviderModule::getInputPacket() {
 Frame::UniquePtr StereoDataProviderModule::getSegFramePayload() {
   bool queue_state = false;
   Frame::UniquePtr seg_frame_payload = nullptr;
-
-  queue_state = seg_frame_queue_.pop(seg_frame_payload);
+  if (MISO::parallel_run_) {
+    // LOG(WARNING) << "Waiting for semantic segmentation data...";
+    queue_state = seg_frame_queue_.popBlocking(seg_frame_payload);
+  } else {
+    queue_state = seg_frame_queue_.pop(seg_frame_payload); //NOTE(Nadia) this line alone is needed when seg_frame should not be a requirement
+  }
 
   if (!queue_state) {
     LOG_IF(WARNING, MISO::parallel_run_)

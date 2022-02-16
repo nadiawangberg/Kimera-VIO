@@ -580,7 +580,9 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   // Inliers are max coherent set.
   std::vector<int> inliers = coherentSet.at(maxCoherentSetId);
 
-  inliers = removeSemanticOutliers(inliers, ref_stereoFrame);
+  if (ref_stereoFrame.seg_frame_.id_ != -1) {
+      inliers = removeSemanticOutliers(inliers, ref_stereoFrame);
+  }
 
   // Sort inliers.
   std::sort(inliers.begin(), inliers.end());
@@ -848,7 +850,7 @@ std::vector<int> Tracker::removeSemanticOutliers(const std::vector<int>& inliers
       cv::Point geom_inlier_r = cv::Point(kp_right[in].x, kp_right[in].y);
 
       if (not isSemanticOutlier(geom_inlier_r, stereo_frame.seg_frame_)) {
-        // inliers.erase(inliers.begin()+in); // erases the outlier_pos+1 element (this is regular 0-indexing)
+        // is semantic inlier!
         cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(255,255,255)); //DEBUG
         inliers_semantic.push_back(in);
       }
@@ -866,9 +868,7 @@ std::vector<int> Tracker::removeSemanticOutliers(const std::vector<int>& inliers
 bool Tracker::isSemanticOutlier(const cv::Point& geom_inlier,
                                const Frame& seg_frame) {
   
-  if (seg_frame.id_ == -1) {return false; }
-
-  int dynamic_color = 162; // Value of people in seg_frame from uHumans2
+  int dynamic_color = 162; // TODO - Make a ros param / yaml - Value of people in seg_frame from uHumans2
   int kp_color = seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x);
 
   if (kp_color == dynamic_color) { //outlier!
@@ -878,14 +878,6 @@ bool Tracker::isSemanticOutlier(const cv::Point& geom_inlier,
     return false;
   }
 
-  // //TODO(Nadia) - For debugging only!
-  // // cv::imwrite("seg_img_in_tracker.jpg", seg_frame.img_);
-  // // cv::Scalar people_rgb = cv::Scalar(162,162,162); // Both are included??
-  // // cv::Mat dynamic_img; 
-  // // cv::inRange(seg_frame.img_, people_rgb, people_rgb, dynamic_img); // if the frame has any orange pixel, this will be painted in the mask as white
-  // // cv::imwrite("masked_img.jpg", dynamic_img);
-  
-  // LOG(INFO) >> "ID: " >> seg_frame.id_.; // If this is -1 we dont have seg_image avaiable
 }
 
 void Tracker::findMatchingKeypoints(const Frame& ref_frame,
