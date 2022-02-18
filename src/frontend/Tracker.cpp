@@ -766,6 +766,26 @@ void Tracker::removeOutliersMono(const std::vector<int>& inliers,
   *matches_ref_cur = outlier_free_matches_ref_cur;
 }
 
+std::vector<int> Tracker::removeOutliersSemantic(const std::vector<int>& inliers, 
+                                     const KeypointsCV& kpts_cur, // cur_stereoFrame->right_keypoints_rectified_
+                                     const Frame& seg_frame,
+                                     KeypointMatches* matches_ref_cur) { // cur_stereoFrame->seg_frame_
+
+  // Classify semantic inliers
+  for (const size_t& in : inliers) {
+     cv::Point kp = cv::Point(kpts_cur[in].x, kpts_cur[in].y);
+     if (not isSemanticOutlier(kp, seg_frame)) {
+      inliers_semantic.push_back(in);
+     }
+  }
+
+  // Extract outliers
+  std::vector<int> outliers;
+  findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
+
+  return outliers
+}
+
 void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
                                    StereoFrame* ref_stereoFrame,
                                    StereoFrame* cur_stereoFrame,
@@ -868,10 +888,10 @@ std::vector<int> Tracker::removeSemanticOutliers(const std::vector<int>& inliers
 bool Tracker::isSemanticOutlier(const cv::Point& geom_inlier,
                                const Frame& seg_frame) {
   
-  int dynamic_color = 162; // TODO - Make a ros param / yaml - Value of people in seg_frame from uHumans2
+  int dynamic_color = 162; // TODO(Nadia) - Make a ros param / yaml - Value of people in seg_frame from uHumans2
   int kp_color = seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x);
 
-  if (kp_color == dynamic_color) { //outlier!
+  if (kp_color == dynamic_color) {
     return true;
   }
   else {
