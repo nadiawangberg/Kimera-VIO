@@ -765,14 +765,10 @@ void Tracker::removeOutliersMono(const std::vector<int>& inliers,
 
   std::vector<int> outliers;
   if (seg_frame_p_ != nullptr) {
-    LOG(WARNING) << "Will remove semantic outliers";
-    // std::vector<int> inliers_semantic; 
-    // inliers_semantic.reserve(inliers.size());
     std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
     findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
   }
   else {
-    LOG(WARNING) << "NOOOoo, seg frame is nullptr";
     findOutliers(*matches_ref_cur, inliers, &outliers);
   }
 
@@ -863,11 +859,10 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
 bool Tracker::isSemanticInlier(const cv::Point& kp,
                                const Frame& seg_frame) {
 
-  bool debug = true;
   if(kp.y > seg_frame.img_.rows || kp.y < 0 || kp.x > seg_frame.img_.cols || kp.x < 0) {
     //NOTE(Nadia) - kp.y was -7 once...?
-    LOG(INFO) << "index out of bounds"; //TODO(Nadia) - should this happen in the first place???
-    return false;
+    LOG(INFO) << "index out of bounds, so not checked for semantic outlier"; //TODO(Nadia) - should this happen in the first place???
+    return true;
   }
 
   int dynamic_color = 162; // TODO(Nadia) - Make a ros param / yaml - Value of people in seg_frame from uHumans2
