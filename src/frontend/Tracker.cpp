@@ -40,6 +40,7 @@ Tracker::Tracker(const FrontendParams& tracker_params,
     : landmark_count_(0),
       tracker_params_(tracker_params),
       camera_(camera),
+      seg_frame_p_(nullptr),
       // Only for debugging and visualization:
       optical_flow_predictor_(nullptr),
       display_queue_(display_queue),
@@ -66,6 +67,17 @@ Tracker::Tracker(const FrontendParams& tracker_params,
   stereo_ransac_.threshold_ = tracker_params_.ransac_threshold_stereo_;
   stereo_ransac_.max_iterations_ = tracker_params_.ransac_max_iterations_;
   stereo_ransac_.probability_ = tracker_params_.ransac_probability_;
+}
+
+
+void Tracker::processSegFrame(const Frame& seg_frame) {
+  
+  //TODO(Nadia) - this copies the seg frame!
+  //seg_frame could also be a frame with id -1?
+  //NOTE(Nadia) - So this will ensure that seg_frame_ is either correct or a nullptr???
+  if (seg_frame.id_ != -1) {
+      seg_frame_p_ = std::make_shared<Frame>(seg_frame);  // TODO this can be optimized!
+  }
 }
 
 // TODO(Toni) a pity that this function is not const just because
@@ -580,9 +592,9 @@ Tracker::geometricOutlierRejectionStereoGivenRotation(
   // Inliers are max coherent set.
   std::vector<int> inliers = coherentSet.at(maxCoherentSetId);
 
-  if (ref_stereoFrame.seg_frame_.id_ != -1) {
-      inliers = removeSemanticOutliers(inliers, ref_stereoFrame);
-  }
+  // if (ref_stereoFrame.seg_frame_.id_ != -1) {
+  //     inliers = removeSemanticOutliers(inliers, ref_stereoFrame);
+  // }
 
   // Sort inliers.
   std::sort(inliers.begin(), inliers.end());
@@ -746,8 +758,25 @@ void Tracker::removeOutliersMono(const std::vector<int>& inliers,
   CHECK_NOTNULL(cur_frame);
   CHECK_NOTNULL(matches_ref_cur);
   // Find indices of outliers in current frame.
+
+    
+  // std::vector<int> inliers_semantic; 
+  // inliers_semantic.reserve(inliers.size());
+
   std::vector<int> outliers;
-  findOutliers(*matches_ref_cur, inliers, &outliers);
+  if (seg_frame_p_ != nullptr) {
+    LOG(WARNING) << "Will remove semantic outliers";
+    // std::vector<int> inliers_semantic; 
+    // inliers_semantic.reserve(inliers.size());
+    std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
+    findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
+  }
+  else {
+    LOG(WARNING) << "NOOOoo, seg frame is nullptr";
+    findOutliers(*matches_ref_cur, inliers, &outliers);
+  }
+
+
   // Remove outliers.
   // outliers cannot be a vector of size_t because opengv uses a vector of
   // int.
@@ -766,24 +795,31 @@ void Tracker::removeOutliersMono(const std::vector<int>& inliers,
   *matches_ref_cur = outlier_free_matches_ref_cur;
 }
 
-std::vector<int> Tracker::removeOutliersSemantic(const std::vector<int>& inliers, 
+std::vector<int> Tracker::findInliersSemantic(const std::vector<int>& inliers, 
                                      const KeypointsCV& kpts_cur, // cur_stereoFrame->right_keypoints_rectified_
-                                     const Frame& seg_frame,
-                                     KeypointMatches* matches_ref_cur) { // cur_stereoFrame->seg_frame_
+                                     const Frame& seg_frame) { // cur_stereoFrame->seg_frame_
+  //DEBUG
+  cv::Mat debug_img;
+  seg_frame.img_.copyTo(debug_img);
+  //DEBUG
+
+  std::vector<int> inliers_semantic; 
+  inliers_semantic.reserve(inliers.size());
 
   // Classify semantic inliers
   for (const size_t& in : inliers) {
      cv::Point kp = cv::Point(kpts_cur[in].x, kpts_cur[in].y);
-     if (not isSemanticOutlier(kp, seg_frame)) {
+     if (isSemanticInlier(kp, seg_frame)) {
+      cv::drawMarker(debug_img, kp , cv::Scalar(255,255,255)); //DEBUG
       inliers_semantic.push_back(in);
+     }
+     else {
+       cv::drawMarker(debug_img, kp , cv::Scalar(0,0,0)); //DEBUG
      }
   }
 
-  // Extract outliers
-  std::vector<int> outliers;
-  findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
-
-  return outliers
+  cv::imwrite("debug_img.jpg", debug_img); //DEBUG
+  return inliers_semantic;
 }
 
 void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
@@ -816,82 +852,28 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
   KeypointMatches outlier_free_matches_ref_cur;
   outlier_free_matches_ref_cur.reserve(inliers.size());
 
-  // cv::Mat feature_image_r;
-  // cv::Mat feature_image_l;
-  // cv::Mat feature_image_seg;
-  // ref_stereoFrame->right_frame_.img_.copyTo(feature_image_r);
-  // ref_stereoFrame->left_frame_.img_.copyTo(feature_image_l);
-  // ref_stereoFrame->seg_frame_.img_.copyTo(feature_image_seg);
-
-  // KeypointsCV kp_right = ref_stereoFrame->right_frame_.keypoints_;
-  // KeypointsCV kp_left = ref_stereoFrame->left_frame_.keypoints_;
-
   for (const size_t& in : inliers) {
-
-    // cv::Point geom_inlier_r = cv::Point(kp_right[in].x, kp_right[in].y);
-    // cv::Point geom_inlier_l = cv::Point(kp_left[in].x, kp_left[in].y);
-
-    // if (isSemanticInlier(geom_inlier_r, ref_stereoFrame->seg_frame_)) {
-      // cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(255,255,255));
-      // cv::drawMarker(feature_image_l, geom_inlier_l , cv::Scalar(0,0,0));
-      // cv::drawMarker(feature_image_seg, geom_inlier_r, cv::Scalar(0,0,0));
-
     outlier_free_matches_ref_cur.push_back((*matches_ref_cur)[in]);
-    // }
-    // else {
-        // cv::drawMarker(feature_image_l, geom_inlier_l , cv::Scalar(255,255,255));
-        // cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(0,0,0));
-        // cv::drawMarker(feature_image_seg, geom_inlier_r, cv::Scalar(255,255,255));
-    // }
   }
-
-  // cv::imwrite("feature_image_r.jpg", feature_image_r);
-  // cv::imwrite("feature_image_l.jpg", feature_image_l);
-  // cv::imwrite("feature_image_seg.jpg", feature_image_seg);
 
   *matches_ref_cur = outlier_free_matches_ref_cur;
 }
 
-std::vector<int> Tracker::removeSemanticOutliers(const std::vector<int>& inliers,
-                                                 const StereoFrame& stereo_frame) {
-    
-    // LOG(INFO) << "inliers.size(): " << inliers.size();
 
-    //DEBUG
-    cv::Mat feature_image_r;
-    stereo_frame.right_frame_.img_.copyTo(feature_image_r);
-    //DEBUG
-
-    std::vector<int> inliers_semantic;
-    inliers_semantic.reserve(inliers.size());
-
-    KeypointsCV kp_right = stereo_frame.right_frame_.keypoints_;                                   
-    for (const int& in : inliers) {
-      cv::Point geom_inlier_r = cv::Point(kp_right[in].x, kp_right[in].y);
-
-      if (not isSemanticOutlier(geom_inlier_r, stereo_frame.seg_frame_)) {
-        // is semantic inlier!
-        cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(255,255,255)); //DEBUG
-        inliers_semantic.push_back(in);
-      }
-      else {
-        cv::drawMarker(feature_image_r, geom_inlier_r , cv::Scalar(0,0,0)); //DEBUG
-      }
-    }
-
-    // LOG(INFO) << "inliers_semantic.size():  " << inliers_semantic.size();                  
-    cv::imwrite("feature_image_r.jpg", feature_image_r); //DEBUG
-
-    return inliers_semantic; 
-    }
-
-bool Tracker::isSemanticOutlier(const cv::Point& geom_inlier,
+bool Tracker::isSemanticInlier(const cv::Point& kp,
                                const Frame& seg_frame) {
-  
-  int dynamic_color = 162; // TODO(Nadia) - Make a ros param / yaml - Value of people in seg_frame from uHumans2
-  int kp_color = seg_frame.img_.at<uchar>(geom_inlier.y, geom_inlier.x);
 
-  if (kp_color == dynamic_color) {
+  bool debug = true;
+  if(kp.y > seg_frame.img_.rows || kp.y < 0 || kp.x > seg_frame.img_.cols || kp.x < 0) {
+    //NOTE(Nadia) - kp.y was -7 once...?
+    LOG(INFO) << "index out of bounds"; //TODO(Nadia) - should this happen in the first place???
+    return false;
+  }
+
+  int dynamic_color = 162; // TODO(Nadia) - Make a ros param / yaml - Value of people in seg_frame from uHumans2
+  int kp_color = seg_frame.img_.at<uchar>(kp.y, kp.x); 
+
+  if (kp_color != dynamic_color) {
     return true;
   }
   else {

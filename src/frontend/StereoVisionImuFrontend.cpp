@@ -294,6 +294,9 @@ StatusStereoMeasurementsPtr StereoVisionImuFrontend::processStereoFrame(
                            left_frame_k,
                            ref_frame_R_cur_frame,
                            stereo_camera_->getR1());
+
+  tracker_->processSegFrame(cur_frame.seg_frame_);
+  
   if (feature_tracks) {
     // TODO(Toni): these feature tracks are not outlier rejected...
     // TODO(Toni): this image should already be computed and inside the

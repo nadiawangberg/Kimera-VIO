@@ -101,17 +101,20 @@ class Tracker {
                           Frame* cur_frame,
                           KeypointMatches* matches_ref_cur);
 
+  void processSegFrame(const Frame& seg_frame);
+
   void removeOutliersStereo(const std::vector<int>& inliers,
                             StereoFrame* ref_stereoFrame,
                             StereoFrame* cur_stereoFrame,
                             KeypointMatches* matches_ref_cur);
 
+  std::vector<int> findInliersSemantic(const std::vector<int>& inliers, 
+                                     const KeypointsCV& kpts_cur,
+                                     const Frame& seg_frame);
 
-  bool isSemanticOutlier(const cv::Point& geom_inlier,
+  bool isSemanticInlier(const cv::Point& geom_inlier,
                          const Frame& seg_frame);
 
-  std::vector<int> removeSemanticOutliers(const std::vector<int>& inliers,
-                                          const StereoFrame& stereo_frame);
 
   /* ---------------------------- CONST FUNCTIONS --------------------------- */
   // returns frame with markers
@@ -158,6 +161,11 @@ class Tracker {
   DebugTrackerInfo debug_info_;
 
  private:
+
+  //TODO(Nadia) - this should only be done for MVP
+  Frame::Ptr seg_frame_p_;
+
+
   // Incremental id assigned to new landmarks.
   LandmarkId landmark_count_;
 
