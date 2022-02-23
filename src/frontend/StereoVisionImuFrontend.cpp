@@ -290,12 +290,13 @@ StatusStereoMeasurementsPtr StereoVisionImuFrontend::processStereoFrame(
   // We need to use the frame to frame rotation.
   gtsam::Rot3 ref_frame_R_cur_frame =
       keyframe_R_ref_frame_.inverse().compose(keyframe_R_cur_frame);
+
+  tracker_->processSegFrame(cur_frame.seg_frame_);
   tracker_->featureTracking(&stereoFrame_km1_->left_frame_,
                            left_frame_k,
                            ref_frame_R_cur_frame,
                            stereo_camera_->getR1());
 
-  tracker_->processSegFrame(cur_frame.seg_frame_);
   
   if (feature_tracks) {
     // TODO(Toni): these feature tracks are not outlier rejected...

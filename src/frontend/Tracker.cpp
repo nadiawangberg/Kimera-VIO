@@ -101,8 +101,10 @@ void Tracker::featureTracking(Frame* ref_frame,
   for (size_t i = 0; i < ref_frame->keypoints_.size(); ++i) {
     if (ref_frame->landmarks_[i] != -1) {
       // Current reference frame keypoint has a valid landmark.
-      px_ref.push_back(ref_frame->keypoints_[i]);
-      indices_of_valid_landmarks.push_back(i);
+      if (seg_frame_p_ == nullptr or isSemanticInlier(ref_frame->keypoints_[i], *seg_frame_p_)) { // Should work as OR is a short circuit operator
+        px_ref.push_back(ref_frame->keypoints_[i]);
+        indices_of_valid_landmarks.push_back(i);
+      }
     }
   }
 
@@ -764,13 +766,15 @@ void Tracker::removeOutliersMono(const std::vector<int>& inliers,
   // inliers_semantic.reserve(inliers.size());
 
   std::vector<int> outliers;
-  if (seg_frame_p_ != nullptr) {
-    std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
-    findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
-  }
-  else {
-    findOutliers(*matches_ref_cur, inliers, &outliers);
-  }
+  findOutliers(*matches_ref_cur, inliers, &outliers);
+
+  // if (seg_frame_p_ != nullptr) {
+  //   std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
+  //   findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
+  // }
+  // else {
+  //   findOutliers(*matches_ref_cur, inliers, &outliers);
+  // }
 
 
   // Remove outliers.
@@ -795,8 +799,8 @@ std::vector<int> Tracker::findInliersSemantic(const std::vector<int>& inliers,
                                      const KeypointsCV& kpts_cur, // cur_stereoFrame->right_keypoints_rectified_
                                      const Frame& seg_frame) { // cur_stereoFrame->seg_frame_
   //DEBUG
-  cv::Mat debug_img;
-  seg_frame.img_.copyTo(debug_img);
+  // cv::Mat debug_img;
+  // seg_frame.img_.copyTo(debug_img);
   //DEBUG
 
   std::vector<int> inliers_semantic; 
@@ -806,15 +810,15 @@ std::vector<int> Tracker::findInliersSemantic(const std::vector<int>& inliers,
   for (const size_t& in : inliers) {
      cv::Point kp = cv::Point(kpts_cur[in].x, kpts_cur[in].y);
      if (isSemanticInlier(kp, seg_frame)) {
-      cv::drawMarker(debug_img, kp , cv::Scalar(255,255,255)); //DEBUG
+      // cv::drawMarker(debug_img, kp , cv::Scalar(255,255,255)); //DEBUG
       inliers_semantic.push_back(in);
      }
      else {
-       cv::drawMarker(debug_img, kp , cv::Scalar(0,0,0)); //DEBUG
+      //  cv::drawMarker(debug_img, kp , cv::Scalar(0,0,0)); //DEBUG
      }
   }
 
-  cv::imwrite("debug_img.jpg", debug_img); //DEBUG
+  // cv::imwrite("debug_img.jpg", debug_img); //DEBUG
   return inliers_semantic;
 }
 
@@ -865,15 +869,42 @@ bool Tracker::isSemanticInlier(const cv::Point& kp,
     return true;
   }
 
-  int dynamic_color = 162; // TODO(Nadia) - Make a ros param / yaml - Value of people in seg_frame from uHumans2
-  int kp_color = seg_frame.img_.at<uchar>(kp.y, kp.x); 
+  cv::Scalar people_rgb = cv::Scalar(162,162,162);
+  
+  //Create boolean image with humans
+  cv::Mat dynamic_img; 
+  cv::inRange(seg_frame.img_, people_rgb, people_rgb, dynamic_img);
+  // cv::imwrite("dyn_img.jpg", dynamic_img);
+  
+  //Dilution
+  int dilation_size = 15; // 5 - 20
+  cv::Mat kernel = cv::getStructuringElement( cv::MORPH_RECT,
+                       cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                       cv::Point( dilation_size, dilation_size ) );
+  
+  cv::dilate(dynamic_img, dynamic_img, kernel);
 
-  if (kp_color != dynamic_color) {
-    return true;
-  }
-  else {
+  // cv::imwrite("dilation_img.jpg", dynamic_img); //DEBUG
+
+  int dynamic_color = 162; // TODO(Nadia) - Make a ros param / yaml - Value of people in seg_frame from uHumans2
+  // int kp_color = seg_frame.img_.at<uchar>(kp.y, kp.x);
+  int kp_in_dilation = dynamic_img.at<uchar>(kp.y, kp.x);
+
+  // if (kp_color != dynamic_color) {
+  //   return true;
+  // }
+  // else {
+  //   return false;
+  // }
+
+  if (kp_in_dilation == 255) {
     return false;
   }
+  else {
+    return true;
+  }
+
+  // return true;
 
 }
 
