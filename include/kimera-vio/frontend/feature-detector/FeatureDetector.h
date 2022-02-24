@@ -37,6 +37,10 @@ class FeatureDetector {
  public:
   void featureDetection(Frame* cur_frame,
                         boost::optional<cv::Mat> R = boost::none);
+                         
+  void featureDetectionSemantic(Frame* cur_frame,
+                                const Frame& seg_frame,
+                                boost::optional<cv::Mat> R = boost::none);
 
   /**
    * @brief rawFeatureDetection Raw feature detection: in image, out keypoints
