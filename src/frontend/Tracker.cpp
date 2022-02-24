@@ -766,15 +766,15 @@ void Tracker::removeOutliersMono(const std::vector<int>& inliers,
   // inliers_semantic.reserve(inliers.size());
 
   std::vector<int> outliers;
-  findOutliers(*matches_ref_cur, inliers, &outliers);
+  // findOutliers(*matches_ref_cur, inliers, &outliers);
 
-  // if (seg_frame_p_ != nullptr) {
-  //   std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
-  //   findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
-  // }
-  // else {
-  //   findOutliers(*matches_ref_cur, inliers, &outliers);
-  // }
+  if (seg_frame_p_ != nullptr) {
+    std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
+    findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
+  }
+  else {
+    findOutliers(*matches_ref_cur, inliers, &outliers);
+  }
 
 
   // Remove outliers.
@@ -831,7 +831,15 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
   CHECK_NOTNULL(matches_ref_cur);
   // Find indices of outliers in current stereo frame.
   std::vector<int> outliers;
-  findOutliers(*matches_ref_cur, inliers, &outliers);
+  // findOutliers(*matches_ref_cur, inliers, &outliers);
+
+  if (seg_frame_p_ != nullptr) {
+    std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_stereoFrame->left_frame_.keypoints_, *seg_frame_p_);
+    findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
+  }
+  else {
+    findOutliers(*matches_ref_cur, inliers, &outliers);
+  }
 
   // Remove outliers: outliers cannot be a vector of size_t because opengv
   // uses a vector of int.
@@ -877,7 +885,7 @@ bool Tracker::isSemanticInlier(const cv::Point& kp,
   // cv::imwrite("dyn_img.jpg", dynamic_img);
   
   //Dilution
-  int dilation_size = 15; // 5 - 20
+  int dilation_size = 7; // 5 - 20
   cv::Mat kernel = cv::getStructuringElement( cv::MORPH_RECT,
                        cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
                        cv::Point( dilation_size, dilation_size ) );
