@@ -102,10 +102,16 @@ void Tracker::featureTracking(Frame* ref_frame,
     if (ref_frame->landmarks_[i] != -1) {
       // Current reference frame keypoint has a valid landmark.
       if (seg_frame_p_ == nullptr or isSemanticInlier(ref_frame->keypoints_[i], *seg_frame_p_)) { // Should work as OR is a short circuit operator
-        px_ref.push_back(ref_frame->keypoints_[i]);
-        indices_of_valid_landmarks.push_back(i);
+          px_ref.push_back(ref_frame->keypoints_[i]);
+          indices_of_valid_landmarks.push_back(i);
+        }
+        else {
+          LOG(INFO) << "111111111111111";
+        }
       }
-    }
+
+    // px_ref.push_back(ref_frame->keypoints_[i]);
+    // indices_of_valid_landmarks.push_back(i); }
   }
 
   // Setup termination criteria for optical flow.
@@ -770,6 +776,11 @@ void Tracker::removeOutliersMono(const std::vector<int>& inliers,
 
   if (seg_frame_p_ != nullptr) {
     std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
+
+    if (inliers_semantic.size() - inliers.size() != 0) {
+      LOG(ERROR) << "(Mono) 22222222222222";
+    }
+
     findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
   }
   else {
@@ -835,6 +846,11 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
 
   if (seg_frame_p_ != nullptr) {
     std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_stereoFrame->left_frame_.keypoints_, *seg_frame_p_);
+    
+    if (inliers_semantic.size() - inliers.size() != 0) {
+      LOG(ERROR) << "(StEREO) 333333333333333";
+    }
+
     findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
   }
   else {
@@ -873,7 +889,7 @@ bool Tracker::isSemanticInlier(const cv::Point& kp,
 
   if(kp.y > seg_frame.img_.rows || kp.y < 0 || kp.x > seg_frame.img_.cols || kp.x < 0) {
     //NOTE(Nadia) - kp.y was -7 once...?
-    LOG(INFO) << "index out of bounds, so not checked for semantic outlier"; //TODO(Nadia) - should this happen in the first place???
+    // LOG(INFO) << "index out of bounds, so not checked for semantic outlier"; //TODO(Nadia) - should this happen in the first place???
     return true;
   }
 

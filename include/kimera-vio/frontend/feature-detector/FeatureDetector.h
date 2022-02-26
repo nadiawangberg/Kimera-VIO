@@ -57,6 +57,9 @@ class FeatureDetector {
   KeypointsCV featureDetection(const Frame& cur_frame,
                                const int& need_n_corners);
 
+  bool isSemanticInlier(const cv::Point& kp,
+                        const Frame& seg_frame);
+
   // Parameters.
   const FeatureDetectorParams feature_detector_params_;
 

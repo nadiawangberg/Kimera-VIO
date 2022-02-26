@@ -135,6 +135,13 @@ void FeatureDetector::featureDetectionSemantic(Frame* cur_frame,
     static LandmarkId lmk_id = 0;
     const CameraParams& cam_param = cur_frame->cam_param_;
     for (const KeypointCV& corner : corners) {
+
+      
+      if (seg_frame.id_ != -1 and not isSemanticInlier(corner, seg_frame)) {
+         LOG(INFO) << "4444444444444444";
+         continue;
+      }
+
       cur_frame->landmarks_.push_back(lmk_id);
       // New keypoint, so seen in a single (key)frame so far.
       cur_frame->landmarks_age_.push_back(1u);
@@ -235,6 +242,44 @@ std::vector<cv::KeyPoint> FeatureDetector::rawFeatureDetection(
   feature_detector_->detect(img, keypoints, mask);
   return keypoints;
 }
+
+bool FeatureDetector::isSemanticInlier(const cv::Point& kp,
+                                       const Frame& seg_frame) {
+    if(kp.y > seg_frame.img_.rows || kp.y < 0 || kp.x > seg_frame.img_.cols || kp.x < 0) {
+    //NOTE(Nadia) - kp.y was -7 once...?
+    // LOG(INFO) << "index out of bounds, so not checked for semantic outlier"; //TODO(Nadia) - should this happen in the first place???
+    return true;
+  }
+
+  cv::Scalar people_rgb = cv::Scalar(162,162,162);
+  
+  //Create boolean image with humans
+  cv::Mat dynamic_img; 
+  cv::inRange(seg_frame.img_, people_rgb, people_rgb, dynamic_img);
+  
+  //Dilution
+  int dilation_size = 30; // 5 - 20
+  cv::Mat kernel = cv::getStructuringElement( cv::MORPH_RECT,
+                       cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                       cv::Point( dilation_size, dilation_size ) );
+  
+  cv::dilate(dynamic_img, dynamic_img, kernel);
+  // cv::imwrite("dilation_img.jpg", dynamic_img); //DEBUG
+
+  int kp_in_dilation = dynamic_img.at<uchar>(kp.y, kp.x);
+
+
+  if (kp_in_dilation == 255) {
+    return false;
+  }
+  else {
+    return true;
+  }
+
+  // return true;                                    
+  
+  
+  }
 
 KeypointsCV FeatureDetector::featureDetection(const Frame& cur_frame,
                                               const int& need_n_corners) {
