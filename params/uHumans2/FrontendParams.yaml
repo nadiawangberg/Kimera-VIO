@@ -65,3 +65,7 @@ disparityThreshold: 0.5
 # 0: Static - assumes no optical flow between images (aka static camera).
 # 1: Rotational - use IMU gyro to estimate optical flow.
 optical_flow_predictor_type: 1
+
+#Semantic outlier removal
+semantic_outlier_rejection: 1 # (0 / 1 )
+semantic_dilution: 8 # This is currently not used (25.02.22)

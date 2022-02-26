@@ -72,7 +72,16 @@ void FrontendParams::print() const {
                         useStereoTracking_,
                         // OTHER parameters
                         "disparityThreshold_: ",
-                        disparityThreshold_);
+                        disparityThreshold_),
+
+                        //Semantic params
+                        "semantic_outlier_rejection_: ",
+                        semantic_outlier_rejection_,
+
+                        "semantic_dilution_: ",
+                        semantic_dilution_;
+
+
   LOG(INFO) << out.str();
 
   feature_detector_params_.print();
@@ -105,6 +114,10 @@ bool FrontendParams::parseYAML(const std::string& filepath) {
   yaml_parser.getYamlParam("ransac_max_iterations", &ransac_max_iterations_);
   yaml_parser.getYamlParam("ransac_probability", &ransac_probability_);
   yaml_parser.getYamlParam("ransac_randomize", &ransac_randomize_);
+
+  yaml_parser.getYamlParam("semantic_outlier_rejection", &semantic_outlier_rejection_);
+  yaml_parser.getYamlParam("semantic_dilution", &semantic_dilution_);
+  
 
   // Given in seconds, needs to be converted to nanoseconds.
   double intra_keyframe_time_seconds;
@@ -165,7 +178,11 @@ bool FrontendParams::equals(const FrontendParams& tp2, double tol) const {
          (useStereoTracking_ == tp2.useStereoTracking_) &&
          // others:
          (optical_flow_predictor_type_ == tp2.optical_flow_predictor_type_) &&
-         (fabs(disparityThreshold_ - tp2.disparityThreshold_) <= tol);
+         (fabs(disparityThreshold_ - tp2.disparityThreshold_) <= tol) &&
+
+         //Semantic
+         (semantic_outlier_rejection_ == tp2.semantic_outlier_rejection_) &&
+         (semantic_dilution_ == tp2.semantic_dilution_);
 }
 
 }  // namespace VIO

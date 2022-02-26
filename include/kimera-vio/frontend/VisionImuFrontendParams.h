@@ -89,6 +89,9 @@ protected:
   // max disparity under which we consider the vehicle steady
   double disparityThreshold_ = 0.5;
 
+  int semantic_dilution_ = 8;
+  bool semantic_outlier_rejection_ = true; 
+
   OpticalFlowPredictorType optical_flow_predictor_type_ =
       OpticalFlowPredictorType::kNoPrediction;
 };

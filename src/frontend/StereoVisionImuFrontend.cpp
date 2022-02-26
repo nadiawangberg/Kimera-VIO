@@ -247,7 +247,12 @@ void StereoVisionImuFrontend::processFirstStereoFrame(
 
   // Perform feature detection.
   CHECK(feature_detector_);
-  feature_detector_->featureDetectionSemantic(left_frame, stereoFrame_k_->seg_frame_ , stereo_camera_->getR1());
+  if (tracker_->tracker_params_.semantic_outlier_rejection_) {
+      feature_detector_->featureDetectionSemantic(left_frame, stereoFrame_k_->seg_frame_ , stereo_camera_->getR1());
+  }
+  else {
+    feature_detector_->featureDetection(left_frame, stereo_camera_->getR1());
+  }
 
   // Get 3D points via stereo.
   stereo_matcher_.sparseStereoReconstruction(stereoFrame_k_.get());
@@ -400,9 +405,15 @@ StatusStereoMeasurementsPtr StereoVisionImuFrontend::processStereoFrame(
     //feature_detector_->featureDetection(left_frame_k,
     //                                    stereo_camera_->getR1());
 
-    feature_detector_->featureDetectionSemantic(left_frame_k,
-                                                cur_frame.seg_frame_,
-                                                stereo_camera_->getR1());
+    if (tracker_->tracker_params_.semantic_outlier_rejection_) {
+      feature_detector_->featureDetectionSemantic(left_frame_k, 
+                                                  cur_frame.seg_frame_, 
+                                                  stereo_camera_->getR1());
+    }
+    else {
+      feature_detector_->featureDetection(left_frame_k, 
+                                          stereo_camera_->getR1());
+    }
     
 
     // Get 3D points via stereo, including newly extracted
