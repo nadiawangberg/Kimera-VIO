@@ -101,17 +101,17 @@ void Tracker::featureTracking(Frame* ref_frame,
   for (size_t i = 0; i < ref_frame->keypoints_.size(); ++i) {
     if (ref_frame->landmarks_[i] != -1) {
       // Current reference frame keypoint has a valid landmark.
-      if (seg_frame_p_ == nullptr or isSemanticInlier(ref_frame->keypoints_[i], *seg_frame_p_)) { // Should work as OR is a short circuit operator
-          px_ref.push_back(ref_frame->keypoints_[i]);
-          indices_of_valid_landmarks.push_back(i);
-        }
-        else {
-          LOG(INFO) << "111111111111111";
-        }
-      }
+      // if (seg_frame_p_ == nullptr or isSemanticInlier(ref_frame->keypoints_[i], *seg_frame_p_)) { // Should work as OR is a short circuit operator
+      //     px_ref.push_back(ref_frame->keypoints_[i]);
+      //     indices_of_valid_landmarks.push_back(i);
+      //   }
+      //   else {
+      //     LOG(INFO) << "111111111111111";
+      //   }
+      // }
 
-    // px_ref.push_back(ref_frame->keypoints_[i]);
-    // indices_of_valid_landmarks.push_back(i); }
+    px_ref.push_back(ref_frame->keypoints_[i]);
+    indices_of_valid_landmarks.push_back(i); }
   }
 
   // Setup termination criteria for optical flow.
@@ -887,48 +887,17 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
 bool Tracker::isSemanticInlier(const cv::Point& kp,
                                const Frame& seg_frame) {
 
-  if(kp.y > seg_frame.img_.rows || kp.y < 0 || kp.x > seg_frame.img_.cols || kp.x < 0) {
-    //NOTE(Nadia) - kp.y was -7 once...?
-    // LOG(INFO) << "index out of bounds, so not checked for semantic outlier"; //TODO(Nadia) - should this happen in the first place???
-    return true;
-  }
-
-  cv::Scalar people_rgb = cv::Scalar(162,162,162);
-  
-  //Create boolean image with humans
-  cv::Mat dynamic_img; 
-  cv::inRange(seg_frame.img_, people_rgb, people_rgb, dynamic_img);
-  // cv::imwrite("dyn_img.jpg", dynamic_img);
-  
-  //Dilution
-  int dilation_size = 7; // 5 - 20
-  cv::Mat kernel = cv::getStructuringElement( cv::MORPH_RECT,
-                       cv::Size( 2*dilation_size + 1, 2*dilation_size+1 ),
-                       cv::Point( dilation_size, dilation_size ) );
-  
-  cv::dilate(dynamic_img, dynamic_img, kernel);
-
-  // cv::imwrite("dilation_img.jpg", dynamic_img); //DEBUG
+  if(kp.y > seg_frame.img_.rows || kp.y < 0 || kp.x > seg_frame.img_.cols || kp.x < 0) { return true; }
 
   int dynamic_color = 162; // TODO(Nadia) - Make a ros param / yaml - Value of people in seg_frame from uHumans2
-  // int kp_color = seg_frame.img_.at<uchar>(kp.y, kp.x);
-  int kp_in_dilation = dynamic_img.at<uchar>(kp.y, kp.x);
+  int kp_color = seg_frame.img_.at<uchar>(kp.y, kp.x);
 
-  // if (kp_color != dynamic_color) {
-  //   return true;
-  // }
-  // else {
-  //   return false;
-  // }
-
-  if (kp_in_dilation == 255) {
+  if (kp_color != dynamic_color) {
     return false;
   }
   else {
     return true;
   }
-
-  // return true;
 
 }
 
