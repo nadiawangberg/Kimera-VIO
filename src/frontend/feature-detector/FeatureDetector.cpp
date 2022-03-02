@@ -138,6 +138,7 @@ void FeatureDetector::featureDetectionSemantic(Frame* cur_frame,
 
       
       if (seg_frame.id_ != -1 and not isSemanticInlier(corner, seg_frame)) {
+         LOG(INFO) << "(seg_frame - cur_frame) timediff: " << seg_frame.timestamp_ - cur_frame->timestamp_;
          LOG(INFO) << "4444444444444444";
          continue;
       }
@@ -251,10 +252,10 @@ bool FeatureDetector::isSemanticInlier(const cv::Point& kp,
   int kp_color = seg_frame.img_.at<uchar>(kp.y, kp.x);
 
   if (kp_color != dynamic_color) {
-    return false;
+    return true;
   }
   else {
-    return true;
+    return false;
   }
 
 }

@@ -778,6 +778,7 @@ void Tracker::removeOutliersMono(const std::vector<int>& inliers,
     std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
 
     if (inliers_semantic.size() - inliers.size() != 0) {
+      LOG(ERROR) << "(seg_frame - cur_frame) timediff: " << seg_frame_p_->timestamp_ - cur_frame->timestamp_;
       LOG(ERROR) << "(Mono) 22222222222222";
     }
 
@@ -848,6 +849,7 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
     std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_stereoFrame->left_frame_.keypoints_, *seg_frame_p_);
     
     if (inliers_semantic.size() - inliers.size() != 0) {
+      LOG(ERROR) << "(seg_frame - cur_frame) timediff: " << seg_frame_p_->timestamp_ - cur_stereoFrame->left_frame_.timestamp_;
       LOG(ERROR) << "(StEREO) 333333333333333";
     }
 
@@ -893,10 +895,10 @@ bool Tracker::isSemanticInlier(const cv::Point& kp,
   int kp_color = seg_frame.img_.at<uchar>(kp.y, kp.x);
 
   if (kp_color != dynamic_color) {
-    return false;
+    return true;
   }
   else {
-    return true;
+    return false;
   }
 
 }
