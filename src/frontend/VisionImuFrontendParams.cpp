@@ -76,10 +76,7 @@ void FrontendParams::print() const {
 
                         //Semantic params
                         "semantic_outlier_rejection_: ",
-                        semantic_outlier_rejection_,
-
-                        "semantic_dilution_: ",
-                        semantic_dilution_;
+                        semantic_outlier_rejection_;
 
 
   LOG(INFO) << out.str();
@@ -116,7 +113,6 @@ bool FrontendParams::parseYAML(const std::string& filepath) {
   yaml_parser.getYamlParam("ransac_randomize", &ransac_randomize_);
 
   yaml_parser.getYamlParam("semantic_outlier_rejection", &semantic_outlier_rejection_);
-  yaml_parser.getYamlParam("semantic_dilution", &semantic_dilution_);
   
 
   // Given in seconds, needs to be converted to nanoseconds.
@@ -181,8 +177,7 @@ bool FrontendParams::equals(const FrontendParams& tp2, double tol) const {
          (fabs(disparityThreshold_ - tp2.disparityThreshold_) <= tol) &&
 
          //Semantic
-         (semantic_outlier_rejection_ == tp2.semantic_outlier_rejection_) &&
-         (semantic_dilution_ == tp2.semantic_dilution_);
+         (semantic_outlier_rejection_ == tp2.semantic_outlier_rejection_);
 }
 
 }  // namespace VIO
