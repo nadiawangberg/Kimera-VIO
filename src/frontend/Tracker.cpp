@@ -100,18 +100,17 @@ void Tracker::featureTracking(Frame* ref_frame,
   indices_of_valid_landmarks.reserve(n_ref_kpts);
   for (size_t i = 0; i < ref_frame->keypoints_.size(); ++i) {
     if (ref_frame->landmarks_[i] != -1) {
-      // Current reference frame keypoint has a valid landmark.
-      // if (seg_frame_p_ == nullptr or isSemanticInlier(ref_frame->keypoints_[i], *seg_frame_p_)) { // Should work as OR is a short circuit operator
-      //     px_ref.push_back(ref_frame->keypoints_[i]);
-      //     indices_of_valid_landmarks.push_back(i);
-      //   }
-      //   else {
-      //     LOG(INFO) << "111111111111111";
-      //   }
-      // }
+      if (seg_frame_p_ == nullptr or isSemanticInlier(ref_frame->keypoints_[i], *seg_frame_p_)) {
+          px_ref.push_back(ref_frame->keypoints_[i]);
+          indices_of_valid_landmarks.push_back(i);
+        }
+        else {
+          LOG(INFO) << "111111111111111";
+        }
 
-    px_ref.push_back(ref_frame->keypoints_[i]);
-    indices_of_valid_landmarks.push_back(i); }
+      // px_ref.push_back(ref_frame->keypoints_[i]);
+      // indices_of_valid_landmarks.push_back(i);
+    }
   }
 
   // Setup termination criteria for optical flow.
@@ -772,21 +771,21 @@ void Tracker::removeOutliersMono(const std::vector<int>& inliers,
   // inliers_semantic.reserve(inliers.size());
 
   std::vector<int> outliers;
-  // findOutliers(*matches_ref_cur, inliers, &outliers);
+  findOutliers(*matches_ref_cur, inliers, &outliers);
 
-  if (seg_frame_p_ != nullptr) {
-    std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
+  // if (seg_frame_p_ != nullptr) {
+  //   std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_frame->keypoints_, *seg_frame_p_);
 
-    if (inliers_semantic.size() - inliers.size() != 0) {
-      LOG(ERROR) << "(seg_frame - cur_frame) timediff: " << seg_frame_p_->timestamp_ - cur_frame->timestamp_;
-      LOG(ERROR) << "(Mono) 22222222222222";
-    }
+  //   if (inliers_semantic.size() - inliers.size() != 0) {
+  //     LOG(ERROR) << "(seg_frame - cur_frame) timediff: " << seg_frame_p_->timestamp_ - cur_frame->timestamp_;
+  //     LOG(ERROR) << "(Mono) 22222222222222";
+  //   }
 
-    findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
-  }
-  else {
-    findOutliers(*matches_ref_cur, inliers, &outliers);
-  }
+  //   findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
+  // }
+  // else {
+  //   findOutliers(*matches_ref_cur, inliers, &outliers);
+  // }
 
 
   // Remove outliers.
@@ -843,21 +842,21 @@ void Tracker::removeOutliersStereo(const std::vector<int>& inliers,
   CHECK_NOTNULL(matches_ref_cur);
   // Find indices of outliers in current stereo frame.
   std::vector<int> outliers;
-  // findOutliers(*matches_ref_cur, inliers, &outliers);
+  findOutliers(*matches_ref_cur, inliers, &outliers);
 
-  if (seg_frame_p_ != nullptr) {
-    std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_stereoFrame->left_frame_.keypoints_, *seg_frame_p_);
+  // if (seg_frame_p_ != nullptr) {
+  //   std::vector<int> inliers_semantic = findInliersSemantic(inliers, cur_stereoFrame->left_frame_.keypoints_, *seg_frame_p_);
     
-    if (inliers_semantic.size() - inliers.size() != 0) {
-      LOG(ERROR) << "(seg_frame - cur_frame) timediff: " << seg_frame_p_->timestamp_ - cur_stereoFrame->left_frame_.timestamp_;
-      LOG(ERROR) << "(StEREO) 333333333333333";
-    }
+  //   if (inliers_semantic.size() - inliers.size() != 0) {
+  //     LOG(ERROR) << "(seg_frame - cur_frame) timediff: " << seg_frame_p_->timestamp_ - cur_stereoFrame->left_frame_.timestamp_;
+  //     LOG(ERROR) << "(StEREO) 333333333333333";
+  //   }
 
-    findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
-  }
-  else {
-    findOutliers(*matches_ref_cur, inliers, &outliers);
-  }
+  //   findOutliers(*matches_ref_cur, inliers_semantic, &outliers);
+  // }
+  // else {
+  //   findOutliers(*matches_ref_cur, inliers, &outliers);
+  // }
 
   // Remove outliers: outliers cannot be a vector of size_t because opengv
   // uses a vector of int.

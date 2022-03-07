@@ -56,8 +56,20 @@ StereoDataProviderModule::getInputPacket() {
   }
   CHECK(right_frame_payload);
 
+
+  // Time-sync between left image and segmentation image
+  Frame::UniquePtr seg_frame_payload = nullptr;
+  if (!MISO::syncQueue(timestamp, &seg_frame_queue_, &seg_frame_payload)) {
+    // Dropping this message because of missing seg - left/right stereo synced
+    // frames.
+    LOG(ERROR) << "Missing seg_frame for left_frame with id " << left_frame_id
+               << ", dropping this frame.";
+    return nullptr;
+  }
+  CHECK(seg_frame_payload);
+
     //! Retrieve seg frame data.
-  Frame::UniquePtr seg_frame_payload = getSegFramePayload();
+  // Frame::UniquePtr seg_frame_payload = getSegFramePayload();
 
   if (!shutdown_) {
     CHECK(vio_pipeline_callback_);

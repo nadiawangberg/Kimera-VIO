@@ -67,5 +67,4 @@ disparityThreshold: 0.5
 optical_flow_predictor_type: 1
 
 #Semantic outlier removal
-semantic_outlier_rejection: 1 # (0 / 1 )
-semantic_dilution: 8 # This is currently not used (25.02.22)
+semantic_outlier_rejection: 1 # (0 / 1)
