@@ -251,12 +251,14 @@ bool FeatureDetector::isSemanticInlier(const cv::Point& kp,
   int dynamic_color = 162; // TODO(Nadia) - Make a ros param / yaml - Value of people in seg_frame from uHumans2
   int kp_color = seg_frame.img_.at<uchar>(kp.y, kp.x);
 
-  if (kp_color != dynamic_color) {
-    return true;
-  }
-  else {
-    return false;
-  }
+  // if (kp_color != dynamic_color) {
+  //   return true;
+  // }
+  // else {
+  //   return false;
+  // }
+
+  return true;
 
 }
 
