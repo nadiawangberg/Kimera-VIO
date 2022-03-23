@@ -100,16 +100,18 @@ void Tracker::featureTracking(Frame* ref_frame,
   indices_of_valid_landmarks.reserve(n_ref_kpts);
   for (size_t i = 0; i < ref_frame->keypoints_.size(); ++i) {
     if (ref_frame->landmarks_[i] != -1) {
-      if (seg_frame_p_ == nullptr or isSemanticInlier(ref_frame->keypoints_[i], *seg_frame_p_)) {
-          px_ref.push_back(ref_frame->keypoints_[i]);
-          indices_of_valid_landmarks.push_back(i);
-        }
-        else {
-          LOG(INFO) << "111111111111111";
-        }
 
-      // px_ref.push_back(ref_frame->keypoints_[i]);
-      // indices_of_valid_landmarks.push_back(i);
+    // Semantic outlier removal in optical flow feat tracking
+    //   if (seg_frame_p_ == nullptr or isSemanticInlier(ref_frame->keypoints_[i], *seg_frame_p_)) {
+    //       px_ref.push_back(ref_frame->keypoints_[i]);
+    //       indices_of_valid_landmarks.push_back(i);
+    //     }
+    //     else {
+    //       LOG(INFO) << "111111111111111";
+    //     }
+
+      px_ref.push_back(ref_frame->keypoints_[i]);
+      indices_of_valid_landmarks.push_back(i);
     }
   }
 
