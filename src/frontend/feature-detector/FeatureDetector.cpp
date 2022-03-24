@@ -134,13 +134,23 @@ void FeatureDetector::featureDetectionSemantic(Frame* cur_frame,
     // Incremental id assigned to new landmarks
     static LandmarkId lmk_id = 0;
     const CameraParams& cam_param = cur_frame->cam_param_;
+
+    cv::Mat feature_image;
+    seg_frame.img_.copyTo(feature_image);
+
     for (const KeypointCV& corner : corners) {
 
       
       if (seg_frame.id_ != -1 and not isSemanticInlier(corner, seg_frame)) {
-         LOG(INFO) << "(seg_frame - cur_frame) timediff: " << seg_frame.timestamp_ - cur_frame->timestamp_;
+        // Is an outlier
+        cv::drawMarker(feature_image, corner , cv::Scalar(0,0,0));
+
+
          LOG(INFO) << "4444444444444444";
          continue;
+      }
+      else {
+        cv::drawMarker(feature_image, corner , cv::Scalar(255,255,255));
       }
 
       cur_frame->landmarks_.push_back(lmk_id);
@@ -151,6 +161,9 @@ void FeatureDetector::featureDetectionSemantic(Frame* cur_frame,
       cur_frame->versors_.push_back(UndistorterRectifier::UndistortKeypointAndGetVersor(corner, cam_param, R));
       ++lmk_id;
     }
+
+    cv::imwrite("feature_image_march.jpg", feature_image);
+
     VLOG(10) << "featureExtraction: frame " << cur_frame->id_
              << ",  Nr tracked keypoints: " << prev_nr_keypoints
              << ",  Nr extracted keypoints: " << n_corners
