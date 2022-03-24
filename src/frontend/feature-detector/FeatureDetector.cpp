@@ -261,16 +261,17 @@ bool FeatureDetector::isSemanticInlier(const cv::Point& kp,
                                        const Frame& seg_frame) {
   if(kp.y > seg_frame.img_.rows || kp.y < 0 || kp.x > seg_frame.img_.cols || kp.x < 0) { return true; }
 
-  int dynamic_color = 162; // TODO(Nadia) - Make a ros param / yaml - Value of people in seg_frame from uHumans2
-  int kp_color = seg_frame.img_.at<uchar>(kp.y, kp.x);
-
-  // if (kp_color != dynamic_color) {
-  //   return true;
-  // }
-  // else {
-  //   return false;
-  // }
-
+  cv::Vec3b kp_color = seg_frame.img_.at<cv::Vec3b>(kp.y,kp.x);
+                              // r g b
+  cv::Vec3b car_colors [8] = {cv::Vec3b(166,221,155), cv::Vec3b(154,248,245), cv::Vec3b(253,210,188), 
+                               cv::Vec3b(226,59,251), cv::Vec3b(108,91,207), cv::Vec3b(243,196,231),
+                               cv::Vec3b(209,231,181), cv::Vec3b(114,119,232) }; // These cars are static
+  
+  for(const cv::Vec3b &car_color : car_colors) {
+    if (kp_color == car_color) {
+      return false;
+    }
+  }
   return true;
 
 }
