@@ -248,7 +248,7 @@ void StereoVisionImuFrontend::processFirstStereoFrame(
   // Perform feature detection.
   CHECK(feature_detector_);
   if (tracker_->tracker_params_.semantic_outlier_rejection_) {
-      feature_detector_->featureDetectionSemantic(left_frame, stereoFrame_k_->seg_frame_ , stereo_camera_->getR1());
+      feature_detector_->featureDetectionSemantic(left_frame, stereoFrame_k_->seg_frame_ , tracker_->tracker_params_.semantic_dynamic_colors_, stereo_camera_->getR1());
   }
   else {
     feature_detector_->featureDetection(left_frame, stereo_camera_->getR1());
@@ -407,7 +407,8 @@ StatusStereoMeasurementsPtr StereoVisionImuFrontend::processStereoFrame(
 
     if (tracker_->tracker_params_.semantic_outlier_rejection_) {
       feature_detector_->featureDetectionSemantic(left_frame_k, 
-                                                  cur_frame.seg_frame_, 
+                                                  cur_frame.seg_frame_,
+                                                  tracker_->tracker_params_.semantic_dynamic_colors_,
                                                   stereo_camera_->getR1());
     }
     else {

@@ -113,6 +113,8 @@ bool FrontendParams::parseYAML(const std::string& filepath) {
   yaml_parser.getYamlParam("ransac_randomize", &ransac_randomize_);
 
   yaml_parser.getYamlParam("semantic_outlier_rejection", &semantic_outlier_rejection_);
+  yaml_parser.getYamlParam("semantic_dynamic_colors", &semantic_dynamic_colors_);
+
   
 
   // Given in seconds, needs to be converted to nanoseconds.

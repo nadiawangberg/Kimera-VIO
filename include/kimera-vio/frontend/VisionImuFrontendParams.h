@@ -91,6 +91,7 @@ protected:
 
   bool semantic_outlier_rejection_ = true; 
 
+  std::vector<double> semantic_dynamic_colors_;
   OpticalFlowPredictorType optical_flow_predictor_type_ =
       OpticalFlowPredictorType::kNoPrediction;
 };

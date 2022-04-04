@@ -40,6 +40,7 @@ class FeatureDetector {
                          
   void featureDetectionSemantic(Frame* cur_frame,
                                 const Frame& seg_frame,
+                                const std::vector<double> semantic_dynamic_colors,
                                 boost::optional<cv::Mat> R = boost::none);
 
   /**
@@ -58,7 +59,8 @@ class FeatureDetector {
                                const int& need_n_corners);
 
   bool isSemanticInlier(const cv::Point& kp,
-                        const Frame& seg_frame);
+                        const Frame& seg_frame,
+                        const std::vector<double> semantic_dynamic_colors);
 
   // Parameters.
   const FeatureDetectorParams feature_detector_params_;

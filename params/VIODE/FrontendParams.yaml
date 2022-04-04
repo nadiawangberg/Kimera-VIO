@@ -66,3 +66,14 @@ disparityThreshold: 0.5
 # 1: Rotational - use IMU gyro to estimate optical flow.
 optical_flow_predictor_type: 1
 semantic_outlier_rejection: 1
+
+
+semantic_dynamic_colors: [166.0,221.0,155.0,   
+                          154.0,248.0,245.0,    
+                          253.0,210.0,188.0, 
+                          226.0,59.0,251.0,
+                          108.0,91.0,207.0,
+                          243.0,196.0,231.0,
+
+                          209.0,231.0,181.0, 
+                          114.0,119.0,232.0] # The two lasts cars are static

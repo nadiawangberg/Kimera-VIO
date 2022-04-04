@@ -88,6 +88,7 @@ FeatureDetector::FeatureDetector(
 
 void FeatureDetector::featureDetectionSemantic(Frame* cur_frame,
                                               const Frame& seg_frame,
+                                              const std::vector<double> semantic_dynamic_colors,
                                                boost::optional<cv::Mat> R) {
   
   CHECK_NOTNULL(cur_frame);
@@ -141,7 +142,7 @@ void FeatureDetector::featureDetectionSemantic(Frame* cur_frame,
     for (const KeypointCV& corner : corners) {
 
       
-      if (seg_frame.id_ != -1 and not isSemanticInlier(corner, seg_frame)) {
+      if (seg_frame.id_ != -1 and not isSemanticInlier(corner, seg_frame, semantic_dynamic_colors)) {
         // Is an outlier
         cv::drawMarker(feature_image, corner , cv::Scalar(0,0,0));
 
@@ -162,7 +163,8 @@ void FeatureDetector::featureDetectionSemantic(Frame* cur_frame,
       ++lmk_id;
     }
 
-    cv::imwrite("feature_image_march.jpg", feature_image);
+    // cv::imwrite("feature_image_april.jpg", feature_image);
+    // cv::imwrite("left_img_april.jpg", cur_frame->img_);
 
     VLOG(10) << "featureExtraction: frame " << cur_frame->id_
              << ",  Nr tracked keypoints: " << prev_nr_keypoints
@@ -258,22 +260,20 @@ std::vector<cv::KeyPoint> FeatureDetector::rawFeatureDetection(
 }
 
 bool FeatureDetector::isSemanticInlier(const cv::Point& kp,
-                                       const Frame& seg_frame) {
+                                       const Frame& seg_frame,
+                                       const std::vector<double> dyn_color) {
   if(kp.y > seg_frame.img_.rows || kp.y < 0 || kp.x > seg_frame.img_.cols || kp.x < 0) { return true; }
 
   cv::Vec3b kp_color = seg_frame.img_.at<cv::Vec3b>(kp.y,kp.x);
-                              // r g b
-  cv::Vec3b car_colors [8] = {cv::Vec3b(166,221,155), cv::Vec3b(154,248,245), cv::Vec3b(253,210,188), 
-                               cv::Vec3b(226,59,251), cv::Vec3b(108,91,207), cv::Vec3b(243,196,231),
-                               cv::Vec3b(209,231,181), cv::Vec3b(114,119,232) }; // These cars are static
-  
-  for(const cv::Vec3b &car_color : car_colors) {
-    if (kp_color == car_color) {
+
+  for (int i = 0; i < dyn_color.size(); i++ ) {
+    cv::Vec3b dyn_obj_color = cv::Vec3b(dyn_color[3*i], dyn_color[3*i+1], dyn_color[3*i+2]); //TODO - this may segfault, should try to prevend this... xD
+
+    if (kp_color == dyn_obj_color) {
       return false;
     }
   }
   return true;
-
 }
 
 KeypointsCV FeatureDetector::featureDetection(const Frame& cur_frame,
