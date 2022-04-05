@@ -266,8 +266,10 @@ bool FeatureDetector::isSemanticInlier(const cv::Point& kp,
 
   cv::Vec3b kp_color = seg_frame.img_.at<cv::Vec3b>(kp.y,kp.x);
 
+  CHECK(dyn_color.size() % 3 == 0);
+
   for (int i = 0; i < dyn_color.size(); i++ ) {
-    cv::Vec3b dyn_obj_color = cv::Vec3b(dyn_color[3*i], dyn_color[3*i+1], dyn_color[3*i+2]); //TODO - this may segfault, should try to prevend this... xD
+    cv::Vec3b dyn_obj_color = cv::Vec3b(dyn_color[3*i], dyn_color[3*i+1], dyn_color[3*i+2]);
 
     if (kp_color == dyn_obj_color) {
       return false;

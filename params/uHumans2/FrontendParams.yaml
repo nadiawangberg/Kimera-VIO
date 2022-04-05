@@ -69,4 +69,6 @@ optical_flow_predictor_type: 1
 #Semantic outlier removal
 semantic_outlier_rejection: 1 # (0 / 1)
 
-semantic_dynamic_colors: [234, 213, 34] # 1 # [162, 162, 162]
+semantic_dynamic_colors: [234, 213, 35, 35, 213, 234] # 1 # [162, 162, 162]
+
+
