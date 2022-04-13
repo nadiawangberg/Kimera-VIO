@@ -1,0 +1,69 @@
+%YAML:1.0
+# General sensor definitions.
+camera_id: left_cam
+
+# Sensor extrinsics wrt. the body-frame.
+T_BS:
+  cols: 4
+  rows: 4
+  data: [1.0, 0.0, 0.0, 0.0,
+         0.0, 1.0, 0.0, 0.0,
+         0.0, 0.0, 1.0, 0.0,
+         0.0, 0.0, 0.0, 1.0]
+
+# Camera specific definitions.
+rate_hz: 20
+resolution: [640, 480]
+camera_model: pinhole
+intrinsics: [525.0, 525.0,  319.5, 239.5]  #fu, fv, cu, cv
+distortion_model: radial-tangential
+distortion_coefficients: [0.0, 0.0, 0.0, 0.0]
+
+
+# Kinect --> lens
+
+  # data: [-0.37756661 , 0.92553086  ,0.02891497  ,0.029     ,
+  #       -0.92593862, -0.37706091, -0.02151133 , 0.049     ,
+  #       -0.0090067  ,-0.03489545 , 0.99935038 ,-0.057     ,
+  #         0.       ,   0.       ,   0.     ,     1.        ]
+
+
+
+
+# Kinect -> openni_camera
+
+# data: [-0.92646308 , -0.37575587 , -0.02176458 , -0.011   ,
+#  -0.00876101 ,-0.03628063 , 0.99930324 , 0.05      ,
+#  -0.37628369 , 0.92600823 , 0.03032066 ,-0.057     ,
+#   0.     ,     0.      ,    0.      ,    1.        ]
+
+
+  # data: [-0.92646308 , -0.37575587 , -0.02176458 , -0.011   ,
+  #       -0.00876101 ,-0.03628063 , 0.99930324 , 0.05      ,
+  #       -0.37628369 , 0.92600823 , 0.03032066 ,-0.057     ,
+  #         0.     ,     0.      ,    0.      ,    1. ]
+
+# %YAML:1.0
+# # General sensor definitions.
+# # Changed to match TUM dataste
+
+
+# camera_id: left_cam
+
+# # Sensor extrinsics wrt. the body-frame.
+# T_BS:
+#   cols: 4
+#   rows: 4
+#   data: [0.0148655429818, -0.999880929698, 0.00414029679422, -0.0216401454975,
+#          0.999557249008, 0.0149672133247, 0.025715529948, -0.064676986768,
+#         -0.0257744366974, 0.00375618835797, 0.999660727178, 0.00981073058949,
+#          0.0, 0.0, 0.0, 1.0] # NOTE - this was not changed
+
+# # Camera specific definitions.
+# rate_hz: 20
+# resolution: [640, 480]
+# camera_model: pinhole #plumb_bob
+# intrinsics: [525.0, 525.0,  319.5, 239.5] #fu, fv, cu, cv
+# distortion_model: radial-tangential # plumb_bob
+# distortion_coefficients: [0.0, 0.0, 0.0, 0.0]
+
