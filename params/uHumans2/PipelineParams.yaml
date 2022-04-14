@@ -18,8 +18,3 @@ display_type: 0
 # 0: Sequential
 # 1: Parallel
 parallel_run: 1
-
-#Display type
-# 0: OpenCV
-# 1: Pangolin
-display_type: 0 

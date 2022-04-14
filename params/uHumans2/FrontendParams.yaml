@@ -31,11 +31,11 @@ templ_cols: 101 #must be odd
 templ_rows: 11
 stripe_extra_rows: 0
 minPointDist: 0.5
-maxPointDist: 50
+maxPointDist: 10
 bidirectionalMatching: 0
 
 # Non-maximum suppression params
-enable_non_max_suppression: 0
+enable_non_max_suppression: 1
 non_max_suppression_type: 4
 
 # Subpixel corner refinement for the monocular case
